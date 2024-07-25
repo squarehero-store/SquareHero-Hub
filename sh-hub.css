@@ -1,3 +1,7 @@
+/*Hide default page wrapper*/
+#siteWrapper {
+  display: none!important;
+}
 /*Hide empty section*/
 .sqs-empty-section {
   display: none;
