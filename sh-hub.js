@@ -1,14 +1,17 @@
 // =================================================
-//           ⚡ SquareHero Hub v0.2.1 ⚡
+//           ⚡ SquareHero Hub v0.2.2 ⚡
 // =================================================
 (function() {
-    // Check if the SquareHero Hub container exists
-    const hubContainer = document.querySelector('div[data-squarehero="section-name"][sh-section="sh-hub"]');
-    if (!hubContainer) {
-        console.log('SquareHero Hub container not found. Exiting.');
-        return;
+    function initSquareHeroHub() {
+        const hubContainer = document.querySelector('div[data-squarehero="section-name"][sh-section="sh-hub"]');
+        if (hubContainer) {
+            console.log('SquareHero Hub container found. Initializing...');
+            injectHTML(hubContainer);
+            // Call other initialization functions here
+        } else {
+            console.log('SquareHero Hub container not found. Exiting.');
+        }
     }
-
     // Function to inject HTML
     function injectHTML() {
         hubContainer.innerHTML = `
@@ -64,6 +67,14 @@
             <div id="loadingSymbol" class="loading"><div class="spinner"></div></div>
         `;
     }
+
+     // Initialize on DOM content loaded
+     if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSquareHeroHub);
+    } else {
+        initSquareHeroHub();
+    }
+})();
 
     // Inject HTML
     injectHTML();
