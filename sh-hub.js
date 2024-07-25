@@ -1,5 +1,5 @@
 // =================================================
-//           ⚡ SquareHero Hub v0.2.2 ⚡
+//           ⚡ SquareHero Hub v0.2.3 ⚡
 // =================================================
 (function() {
     function initSquareHeroHub() {
