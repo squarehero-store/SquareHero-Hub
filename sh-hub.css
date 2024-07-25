@@ -1,6 +1,7 @@
 .squarehero-hub {
   background: #fafafa;
   padding: 0;
+  /*Hide template header and footer*/
 }
 .squarehero-hub h1,
 .squarehero-hub h2,
