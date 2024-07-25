@@ -102,7 +102,7 @@
             pluginHeader.classList.add('plugin-header');
 
             const icon = document.createElement('img');
-            icon.src = 'https://squarehero-cafe-cozy.squarespace.com/s/sh-plugin-icon.svg';
+            icon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-plugin-icon.svg';
             icon.classList.add('plugin-icon');
 
             const pluginInfo = document.createElement('div');
@@ -178,7 +178,7 @@
                     a.setAttribute('data-doc-url', link);
                     a.textContent = title;
                     const docIcon = document.createElement('img');
-                    docIcon.src = 'https://squarehero-cafe-cozy.squarespace.com/s/sh-hub-doc.svg';
+                    docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
                     docIcon.classList.add('doc-icon');
                     const docItem = document.createElement('div');
                     docItem.classList.add('doc-item');
