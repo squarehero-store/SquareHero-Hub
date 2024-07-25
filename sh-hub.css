@@ -18,28 +18,12 @@
   font-size: 1.375rem;
   font-weight: 600;
 }
-.squarehero-hub .sh-hub {
-  width: 100%;
-  overflow: hidden;
-}
-.squarehero-hub .sh-hub .content-wrapper {
-  padding-top: 0 !important;
-}
-.squarehero-hub .code-block {
-  padding: 0;
-}
 .squarehero-hub header,
 .squarehero-hub footer {
   display: none;
 }
-.squarehero-hub .section-background {
-  background: #fafafa;
-}
 .squarehero-hub .content-wrapper {
   padding: 2vw !important;
-}
-.squarehero-hub #SquareHeroHub {
-  margin-left: -5px;
 }
 .squarehero-hub #SquareHeroHub p,
 .squarehero-hub #SquareHeroHub a {
@@ -200,6 +184,7 @@
   transition: transform 0.3s ease;
 }
 .squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion h4 {
+  margin-top: 0;
   margin-bottom: 10px;
 }
 .squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion p {
