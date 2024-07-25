@@ -35,7 +35,7 @@
         container.innerHTML = `
             <header>
                 <div class="sh-hub--logo">
-                    <img src="https://static1.squarespace.com/static/664bf0a8c6dbff5e9652fce9/t/668a821bafa9161a00487435/1720353307823/SquareHero_Final-Logo-Reversed.png">
+                    <img src="https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/SquareHero_Final-Logo-Reversed.png">
                 </div>
                 <div>
                     <h1>SquareHero Hub</h1>
@@ -332,11 +332,11 @@
 
     function renderInnerPlaceholders(text) {
         console.log('Rendering inner placeholders for text:', text);
-        text = text.replace(/{{ LINK }}\[([^\]]+)\]\(([^)]+)\){{ ENDLINK }}/g, (match, linkText, url) => {
+        text = text.replace(/{{ LINK }}\[([^\]]+)\]\(([^)]+)\){{ END LINK }}/g, (match, linkText, url) => {
             console.log('Rendering LINK with text:', linkText, 'and URL:', url);
             return `<a href="${url}" target="_blank">${linkText}</a>`;
         });
-        text = text.replace(/{{ GDOC }}\[([^\]]+)\]\(([^)]+)\){{ ENDGDOC }}/g, (match, linkText, url) => {
+        text = text.replace(/{{ GDOC }}\[([^\]]+)\]\(([^)]+)\){{ END GDOC }}/g, (match, linkText, url) => {
             console.log('Rendering GDOC with text:', linkText, 'and URL:', url);
             return `<a href="#" class="doc-link" data-doc-url="${url}">${linkText}</a>`;
         });

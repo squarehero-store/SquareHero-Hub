@@ -143,7 +143,8 @@
 }
 .squarehero-hub #SquareHeroHub .main-content p,
 .squarehero-hub #SquareHeroHub .main-content a {
-  font-size: 1rem;
+  font-size: 1.125rem;
+  line-height: 130%;
 }
 .squarehero-hub #SquareHeroHub .main-content .doc-link {
   text-decoration: underline;
@@ -279,10 +280,10 @@
 }
 .squarehero-hub #SquareHeroHub .plugin-status .status {
   flex: 0 0 auto;
-  padding: 3px 10px;
+  padding: 5px 10px;
   color: white;
   border-radius: 0px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   text-transform: uppercase;
 }
@@ -305,6 +306,31 @@
   opacity: 0;
   transition: opacity 0.3s ease;
   /*Gradient bg*/
+}
+.squarehero-hub #SquareHeroHub .doc-content p {
+  font-size: 1.125rem;
+  color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .doc-content p span {
+  font-size: 1.125rem;
+}
+.squarehero-hub #SquareHeroHub .doc-content h1 {
+  font-size: 2rem;
+}
+.squarehero-hub #SquareHeroHub .doc-content h2 {
+  font-size: 1.7rem;
+  margin-bottom: 0;
+}
+.squarehero-hub #SquareHeroHub .doc-content h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 1.4rem;
+}
+.squarehero-hub #SquareHeroHub .doc-content h4 {
+  font-size: 1.2rem;
+}
+.squarehero-hub #SquareHeroHub .doc-content li {
+  padding-bottom: 10px;
 }
 .squarehero-hub #SquareHeroHub .doc-content:before {
   content: '';
