@@ -13,4 +13,7 @@ node_modules/
 # Ignore the replace-vars.js script
 replace-variables.js
 
+# Ignore html files
+.html
+
 # Ignore other files or directories as needed

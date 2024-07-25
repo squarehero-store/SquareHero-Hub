@@ -7,14 +7,32 @@
         if (hubContainer) {
             console.log('SquareHero Hub container found. Initializing...');
             injectHTML(hubContainer);
-            // Call other initialization functions here
+            document.body.classList.add('squarehero-hub');
+            
+            // Add the event listener for the code injection link
+            const codeInjectionLink = document.getElementById('code-injection-link');
+            if (codeInjectionLink) {
+                codeInjectionLink.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    window.top.location.href = this.href;
+                });
+                console.log('Code injection link event listener added');
+            } else {
+                console.log('Code injection link not found');
+            }
+
+            setupAccordions();
+            showLoadingSymbol();
+            loadAccordionContent();
+            loadSquarespaceHelpContent();
+            loadPluginContent();
         } else {
             console.log('SquareHero Hub container not found. Exiting.');
         }
     }
-    // Function to inject HTML
-    function injectHTML() {
-        hubContainer.innerHTML = `
+
+    function injectHTML(container) {
+        container.innerHTML = `
             <header>
                 <div class="sh-hub--logo">
                     <img src="https://static1.squarespace.com/static/664bf0a8c6dbff5e9652fce9/t/668a821bafa9161a00487435/1720353307823/SquareHero_Final-Logo-Reversed.png">
@@ -59,7 +77,7 @@
                         <div id="pluginSection" class="plugin-section"></div>
                     </div>
                     <div class="section instructions">
-                        <p>To enable or disable a plugin, <a id="code-injection-link" href="/settings/advanced/code-injection">click here to go to Code Injection</a>, find the relevant meta tag, and change its enabled value to either true or false.</p>
+                        <p>To enable or disable a plugin, <a id="code-injection-link" href="/config/pages/website-tools/code-injection">click here to go to Code Injection</a>, find the relevant meta tag, and change its enabled value to either true or false.</p>
                     </div>
                 </div>
             </div>
@@ -68,19 +86,12 @@
         `;
     }
 
-     // Initialize on DOM content loaded
-     if (document.readyState === 'loading') {
+    // Initialize on DOM content loaded
+    if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initSquareHeroHub);
     } else {
         initSquareHeroHub();
     }
-})();
-
-    // Inject HTML
-    injectHTML();
-
-    // Add 'squarehero-hub' class to body
-    document.body.classList.add('squarehero-hub');
 
     function addPlugin(name, displayName, status, helpDocUrl) {
         const pluginSection = document.getElementById('pluginSection');
@@ -123,21 +134,43 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        showLoadingSymbol();
-        loadAccordionContent();
-        loadSquarespaceHelpContent();
-        loadPluginContent();
-    });
+    function setupAccordions() {
+        console.log('Setting up accordions...');
+        const accordionHeaders = document.querySelectorAll('.accordion-header');
+        console.log(`Found ${accordionHeaders.length} accordion headers`);
+        
+        accordionHeaders.forEach((header, index) => {
+            header.addEventListener('click', function() {
+                console.log(`Accordion ${index + 1} clicked`);
+                const accordion = this.parentElement;
+                accordion.classList.toggle('active');
+                const content = accordion.querySelector('.accordion-content');
+                if (accordion.classList.contains('active')) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    content.style.opacity = '1';
+                    this.querySelector('.accordion-svg').classList.add('rotate');
+                    console.log(`Accordion ${index + 1} opened`);
+                } else {
+                    content.style.maxHeight = '0';
+                    content.style.opacity = '0';
+                    this.querySelector('.accordion-svg').classList.remove('rotate');
+                    console.log(`Accordion ${index + 1} closed`);
+                }
+            });
+            console.log(`Event listener added to accordion ${index + 1}`);
+        });
+    }
 
     function loadAccordionContent() {
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv';
+        console.log('Fetching accordion content...');
         fetch(sheetUrl)
             .then(response => response.text())
             .then(data => {
                 const rows = data.split('\n').slice(1);
+                console.log(`Fetched ${rows.length} rows of accordion content`);
                 const accordionContent = document.getElementById('accordionContent');
-                rows.forEach(row => {
+                rows.forEach((row, index) => {
                     const [link, title] = row.split(',');
                     const a = document.createElement('a');
                     a.href = '#';
@@ -152,6 +185,7 @@
                     docItem.appendChild(docIcon);
                     docItem.appendChild(a);
                     accordionContent.appendChild(docItem);
+                    console.log(`Added accordion item ${index + 1}: ${title}`);
                 });
                 document.querySelectorAll('.doc-link').forEach(link => {
                     link.addEventListener('click', function(event) {
@@ -162,7 +196,12 @@
                         fetchGoogleDocContent(docUrl);
                     });
                 });
-                hideLoadingSymbol();
+                console.log('Added click events to doc links');
+                setTimeout(() => {
+                    hideLoadingSymbol();
+                    console.log('Loading symbol hidden');
+                }, 300);
+                setupAccordions();
             })
             .catch(error => {
                 console.error('Error fetching Google Sheet:', error);
@@ -192,6 +231,8 @@
                     docItem.appendChild(a);
                     squarespaceAccordionContent.appendChild(docItem);
                 });
+                setupAccordions();
+                console.log('Accordions set up after loading Squarespace Help Content');
             })
             .catch(error => {
                 console.error('Error fetching Squarespace Help Docs:', error);
@@ -352,22 +393,5 @@
         const loadingSymbol = document.getElementById('loadingSymbol');
         loadingSymbol.classList.remove('active');  // Hide loading symbol
     }
-
-    document.querySelectorAll('.accordion-header').forEach(header => {
-        header.addEventListener('click', function() {
-            const accordion = this.parentElement;
-            accordion.classList.toggle('active');
-            const content = accordion.querySelector('.accordion-content');
-            if (accordion.classList.contains('active')) {
-                content.style.maxHeight = '1000px';
-                content.style.opacity = '1';
-                this.querySelector('.accordion-svg').classList.add('rotate');
-            } else {
-                content.style.maxHeight = '0';
-                content.style.opacity = '0';
-                this.querySelector('.accordion-svg').classList.remove('rotate');
-            }
-        });
-    });
 
 })();
