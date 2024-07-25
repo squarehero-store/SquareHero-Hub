@@ -1,5 +1,5 @@
 // =================================================
-//           ⚡ SquareHero Hub v0.2.0 ⚡
+//           ⚡ SquareHero Hub v0.2.1 ⚡
 // =================================================
 (function() {
     // Check if the SquareHero Hub container exists
@@ -56,7 +56,7 @@
                         <div id="pluginSection" class="plugin-section"></div>
                     </div>
                     <div class="section instructions">
-                        <p>To enable or disable a plugin, <a id="code-injection-link" href="#">click here to go to Code Injection</a>, find the relevant meta tag, and change its enabled value to either true or false.</p>
+                        <p>To enable or disable a plugin, <a id="code-injection-link" href="/settings/advanced/code-injection">click here to go to Code Injection</a>, find the relevant meta tag, and change its enabled value to either true or false.</p>
                     </div>
                 </div>
             </div>
@@ -117,13 +117,6 @@
         loadAccordionContent();
         loadSquarespaceHelpContent();
         loadPluginContent();
-    });
-
-    document.getElementById('code-injection-link').addEventListener('click', function(event) {
-        event.preventDefault();
-        const baseUrl = window.location.origin;
-        const newUrl = `${baseUrl}/config/pages/website-tools/code-injection`;
-        window.top.location.href = newUrl;
     });
 
     function loadAccordionContent() {
