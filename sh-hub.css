@@ -1,3 +1,7 @@
+/*Hide empty section*/
+.sqs-empty-section {
+  display: none;
+}
 .squarehero-hub {
   background: #fafafa;
   padding: 0;
