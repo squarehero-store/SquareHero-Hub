@@ -1,0 +1,382 @@
+.squarehero-hub {
+  background: #fafafa;
+  padding: 0;
+}
+.squarehero-hub h1,
+.squarehero-hub h2,
+.squarehero-hub h3,
+.squarehero-hub h4 {
+  font-family: "Red Hat Display", sans-serif;
+  font-weight: 800 !important;
+  color: #011e45;
+}
+.squarehero-hub p {
+  font-family: "Roboto Condensed", sans-serif;
+}
+.squarehero-hub h3 {
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+.squarehero-hub .sh-hub {
+  width: 100%;
+  overflow: hidden;
+}
+.squarehero-hub .sh-hub .content-wrapper {
+  padding-top: 0 !important;
+}
+.squarehero-hub .code-block {
+  padding: 0;
+}
+.squarehero-hub header,
+.squarehero-hub footer {
+  display: none;
+}
+.squarehero-hub .section-background {
+  background: #fafafa;
+}
+.squarehero-hub .content-wrapper {
+  padding: 2vw !important;
+}
+.squarehero-hub #SquareHeroHub {
+  margin-left: -5px;
+}
+.squarehero-hub #SquareHeroHub p,
+.squarehero-hub #SquareHeroHub a {
+  font-family: "Roboto Condensed" !important;
+}
+.squarehero-hub #SquareHeroHub .status {
+  font-family: "Roboto Condensed" !important;
+}
+.squarehero-hub #SquareHeroHub header {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 40px !important;
+  padding-right: 40px !important;
+  align-items: center;
+  position: relative;
+  top: 0;
+  box-sizing: border-box;
+  width: 100%;
+  background: #011e45;
+  z-index: 1000;
+  padding: 2vw;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  /*logo*/
+}
+.squarehero-hub #SquareHeroHub header .sh-hub--logo img {
+  width: 145px;
+}
+.squarehero-hub #SquareHeroHub header h1 {
+  text-align: center;
+  font-size: 1.5rem;
+  color: white;
+  font-weight: 900;
+}
+.squarehero-hub #SquareHeroHub header p {
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 130%;
+  color: white;
+  margin-top: 5px;
+}
+.squarehero-hub #SquareHeroHub header h1,
+.squarehero-hub #SquareHeroHub header h2 {
+  margin: 0;
+}
+.squarehero-hub #SquareHeroHub header h2 {
+  font-weight: normal;
+}
+.squarehero-hub #SquareHeroHub header button {
+  color: white;
+  position: relative;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-family: inherit;
+  padding: 20px 30px;
+  z-index: 1;
+  border-radius: 0 !important;
+  font-family: "Roboto Condensed";
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 1.12px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.squarehero-hub #SquareHeroHub header button:before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(90deg, #00D1FF 20.4%, #FF00E6 55.91%, #FF003D 80.09%);
+  background-position: 100% 0;
+  transition: background-position 0.5s ease;
+  /* Smooth transition */
+  z-index: -1;
+  border-radius: 0px;
+}
+.squarehero-hub #SquareHeroHub header button:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #011e45;
+  border-radius: 0px;
+  z-index: -1;
+}
+.squarehero-hub #SquareHeroHub .main-content {
+  position: relative;
+  /*Gradient bg*/
+  padding: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.squarehero-hub #SquareHeroHub .main-content:before {
+  content: '';
+  background: linear-gradient(180deg, rgba(0, 209, 255, 0.06) 0%, rgba(255, 0, 230, 0.06) 31%, rgba(255, 0, 61, 0) 80%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 250px;
+}
+.squarehero-hub #SquareHeroHub .main-content p,
+.squarehero-hub #SquareHeroHub .main-content a {
+  font-size: 1rem;
+}
+.squarehero-hub #SquareHeroHub .main-content .doc-link {
+  text-decoration: underline;
+  color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .main-content a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.squarehero-hub #SquareHeroHub .left-column {
+  flex: 0 0 55%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper {
+  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion {
+  border-radius: 3px;
+  background: #ffffff;
+  padding: 30px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  flex: 0 0 100%;
+  position: relative;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion .accordion-header {
+  flex: 1;
+  flex-wrap: wrap;
+  position: relative;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion .accordion-svg {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' class='rotate'%3e%3cpath fill='black' d='M7.395 10.245c.33.34.88.34 1.21 0l7.148-7.335c.33-.378.33-.945 0-1.285l-.844-.87c-.33-.34-.88-.34-1.246 0L8.018 6.577 2.337.755c-.367-.34-.917-.34-1.247 0l-.843.87c-.33.34-.33.907 0 1.285l7.148 7.335Z'/%3e%3c/svg%3e");
+  width: 16px;
+  height: 10px;
+  display: block;
+  transition: transform 0.3s ease;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion h4 {
+  margin-bottom: 10px;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion p {
+  color: #011e45;
+  margin: 0 !important;
+  opacity: 0.7 !important;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion p a {
+  color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion .accordion-content {
+  display: none;
+  flex-direction: column;
+  flex: 0 0 100%;
+  gap: 10px;
+  margin-top: 20px;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion .accordion-content a {
+  display: block;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion .accordion-content .doc-item {
+  display: flex;
+  gap: 10px;
+  color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion.active .accordion-content {
+  display: flex;
+  max-height: 1000px;
+  opacity: 1;
+}
+.squarehero-hub #SquareHeroHub .left-column .accordion-wrapper .accordion.active .accordion-svg {
+  transform: rotate(180deg);
+}
+.squarehero-hub #SquareHeroHub .right-column {
+  flex: 1 0 35%;
+  z-index: 1;
+}
+.squarehero-hub #SquareHeroHub .section {
+  width: 100%;
+}
+.squarehero-hub #SquareHeroHub .section h3 {
+  margin-bottom: 10px;
+}
+.squarehero-hub #SquareHeroHub .section p {
+  color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .section p a {
+  color: inherit;
+}
+.squarehero-hub #SquareHeroHub .plugin-status {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 3px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .plugin-header {
+  display: flex;
+  flex: 1 1 70%;
+  align-items: flex-start;
+  gap: 10px;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .plugin-header .plugin-icon {
+  width: 24px;
+  height: 24px;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .plugin-header .plugin-info {
+  display: block;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .plugin-header .plugin-info .plugin-title {
+  display: block;
+  color: #011e45;
+  font-weight: bold;
+  font-family: "Red Hat Display", sans-serif;
+  font-size: 1.125rem;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .status {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  color: white;
+  border-radius: 0px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .status.enabled {
+  background-color: #01a92f;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .status.disabled {
+  background-color: #fea800;
+}
+.squarehero-hub #SquareHeroHub .instructions {
+  margin-top: 20px;
+}
+.squarehero-hub #SquareHeroHub .doc-content {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+  padding: 40px;
+  width: 100%;
+  font-family: "Roboto Condensed", sans-serif;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  /*Gradient bg*/
+}
+.squarehero-hub #SquareHeroHub .doc-content:before {
+  content: '';
+  background: linear-gradient(180deg, rgba(0, 209, 255, 0.06) 0%, rgba(255, 0, 230, 0.06) 31%, rgba(255, 0, 61, 0) 80%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 250px;
+}
+.squarehero-hub #SquareHeroHub .doc-content .breadcrumb {
+  flex: 0 0 100%;
+  z-index: 10;
+  position: relative;
+}
+.squarehero-hub #SquareHeroHub .doc-content.visible {
+  opacity: 1;
+}
+.squarehero-hub #SquareHeroHub .doc-content .alert {
+  padding: 30px 50px;
+  background: white;
+  margin: 30px 0;
+  max-width: 70%;
+  border-radius: 3px;
+  position: relative;
+}
+.squarehero-hub #SquareHeroHub .doc-content .alert:before {
+  content: '';
+  left: 0;
+  top: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(0deg, #00D1FF 20.4%, #FF00E6 55.91%, #FF003D 80.09%);
+  position: absolute;
+}
+.squarehero-hub #SquareHeroHub .doc-content .alert h3 {
+  margin-bottom: 10px;
+}
+.squarehero-hub #SquareHeroHub .doc-content .alert p {
+  font-size: 1rem;
+}
+.squarehero-hub #SquareHeroHub .doc-content .alert h2 {
+  font-size: 1.75rem;
+}
+.squarehero-hub #SquareHeroHub .doc-content hr {
+  margin: 50px 0;
+  width: 100%;
+}
+.squarehero-hub #SquareHeroHub .loading {
+  display: none;
+}
+.squarehero-hub #SquareHeroHub .loading .spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #09f;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.squarehero-hub #SquareHeroHub .loading.active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
