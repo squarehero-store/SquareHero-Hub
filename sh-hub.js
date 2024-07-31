@@ -149,16 +149,19 @@
         console.log(`Found ${accordionHeaders.length} accordion headers`);
         
         accordionHeaders.forEach((header, index) => {
-            header.addEventListener('click', function() {
+            header.addEventListener('click', function(event) {
                 console.log(`Accordion ${index + 1} clicked`);
                 const accordion = this.parentElement;
                 accordion.classList.toggle('active');
                 const content = accordion.querySelector('.accordion-content');
+                console.log('Content element:', content);
+                console.log('Initial maxHeight:', content.style.maxHeight);
+                
                 if (accordion.classList.contains('active')) {
                     content.style.maxHeight = content.scrollHeight + 'px';
                     content.style.opacity = '1';
                     this.querySelector('.accordion-svg').classList.add('rotate');
-                    console.log(`Accordion ${index + 1} opened`);
+                    console.log(`Accordion ${index + 1} opened. New maxHeight:`, content.style.maxHeight);
                 } else {
                     content.style.maxHeight = '0';
                     content.style.opacity = '0';
