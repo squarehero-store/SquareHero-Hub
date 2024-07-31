@@ -48,14 +48,24 @@
                     <div class="section">
                         <h3>Guide by Topic</h3>
                         <div class="accordion-wrapper" id="accordionWrapper">
-                            <div class="accordion active">
+                            <div class="accordion">
                                 <div class="accordion-header">
                                     <h4>Getting Started</h4>
                                     <p class="accordion-description">Set up and launch your SquareHero website with ease.</p>
-                                    <div class="accordion-svg rotate"></div>
+                                    <div class="accordion-svg"></div>
                                 </div>
-                                <div class="accordion-content active" id="accordionContent" style="max-height: 1000px; opacity: 1;">
+                                <div class="accordion-content" id="accordionContent">
                                     <!-- Google Docs links will be populated here -->
+                                </div>
+                            </div>
+                            <div class="accordion">
+                                <div class="accordion-header">
+                                    <h4>Template Specific</h4>
+                                    <p class="accordion-description">Detailed guides for your unique SquareHero template.</p>
+                                    <div class="accordion-svg"></div>
+                                </div>
+                                <div class="accordion-content" id="templateAccordionContent">
+                                    <!-- Template Specific links will be populated here -->
                                 </div>
                             </div>
                             <div class="accordion">
@@ -162,89 +172,65 @@
     }
 
     function loadAccordionContent() {
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv';
-        console.log('Fetching accordion content...');
-        fetch(sheetUrl)
-            .then(response => response.text())
-            .then(data => {
-                Papa.parse(data, {
-                    complete: function(results) {
-                        const rows = results.data.slice(1);
-                        console.log(`Fetched ${rows.length} rows of accordion content`);
-                        const accordionContent = document.getElementById('accordionContent');
-                        rows.forEach((row, index) => {
-                            const [link, title] = row;
-                            const a = document.createElement('a');
-                            a.href = '#';
-                            a.classList.add('doc-link');
-                            a.setAttribute('data-doc-url', link);
-                            a.textContent = title;
-                            const docIcon = document.createElement('img');
-                            docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
-                            docIcon.classList.add('doc-icon');
-                            const docItem = document.createElement('div');
-                            docItem.classList.add('doc-item');
-                            docItem.appendChild(docIcon);
-                            docItem.appendChild(a);
-                            accordionContent.appendChild(docItem);
-                            console.log(`Added accordion item ${index + 1}: ${title}`);
-                        });
-                        document.querySelectorAll('.doc-link').forEach(link => {
-                            link.addEventListener('click', function(event) {
-                                event.preventDefault();
-                                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                                console.log('Clicked link, docUrl:', docUrl);
-                                showLoadingSymbol();
-                                fetchGoogleDocContent(docUrl);
+        const sheetUrls = [
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv',
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
+        ];
+    
+        const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
+    
+        sheetUrls.forEach((url, index) => {
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    Papa.parse(data, {
+                        complete: function(results) {
+                            const rows = results.data.slice(1);
+                            console.log(`Fetched ${rows.length} rows for accordion ${index + 1}`);
+                            const accordionContent = document.getElementById(accordionIds[index]);
+                            rows.forEach((row, rowIndex) => {
+                                const [link, title] = row;
+                                const a = document.createElement('a');
+                                a.href = '#';
+                                a.classList.add('doc-link');
+                                a.setAttribute('data-doc-url', link);
+                                a.textContent = title;
+                                const docIcon = document.createElement('img');
+                                docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
+                                docIcon.classList.add('doc-icon');
+                                const docItem = document.createElement('div');
+                                docItem.classList.add('doc-item');
+                                docItem.appendChild(docIcon);
+                                docItem.appendChild(a);
+                                accordionContent.appendChild(docItem);
+                                console.log(`Added accordion item ${rowIndex + 1} to accordion ${index + 1}: ${title}`);
                             });
-                        });
-                        console.log('Added click events to doc links');
-                        setTimeout(() => {
-                            hideLoadingSymbol();
-                            console.log('Loading symbol hidden');
-                        }, 300);
-                        setupAccordions();
-                    }
+                            if (index === sheetUrls.length - 1) {
+                                document.querySelectorAll('.doc-link').forEach(link => {
+                                    link.addEventListener('click', function(event) {
+                                        event.preventDefault();
+                                        const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
+                                        console.log('Clicked link, docUrl:', docUrl);
+                                        showLoadingSymbol();
+                                        fetchGoogleDocContent(docUrl);
+                                    });
+                                });
+                                console.log('Added click events to doc links');
+                                setTimeout(() => {
+                                    hideLoadingSymbol();
+                                    console.log('Loading symbol hidden');
+                                }, 300);
+                                setupAccordions();
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error(`Error fetching Google Sheet for accordion ${index + 1}:`, error);
+                    hideLoadingSymbol();
                 });
-            })
-            .catch(error => {
-                console.error('Error fetching Google Sheet:', error);
-                hideLoadingSymbol();
-            });
-    }
-
-    function loadSquarespaceHelpContent() {
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv';
-        fetch(sheetUrl)
-            .then(response => response.text())
-            .then(data => {
-                Papa.parse(data, {
-                    complete: function(results) {
-                        const rows = results.data.slice(1);
-                        const squarespaceAccordionContent = document.getElementById('squarespaceAccordionContent');
-                        rows.forEach(row => {
-                            const [link, title] = row;
-                            const a = document.createElement('a');
-                            a.href = link;
-                            a.target = '_blank';  // Open link in new tab
-                            a.textContent = title;
-                            const docIcon = document.createElement('img');
-                            docIcon.src = 'https://squarehero-cafe-cozy.squarespace.com/s/sh-hub-doc.svg';
-                            docIcon.classList.add('doc-icon');
-                            const docItem = document.createElement('div');
-                            docItem.classList.add('doc-item');
-                            docItem.appendChild(docIcon);
-                            docItem.appendChild(a);
-                            squarespaceAccordionContent.appendChild(docItem);
-                        });
-                        setupAccordions();
-                        console.log('Accordions set up after loading Squarespace Help Content');
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching Squarespace Help Docs:', error);
-            });
+        });
     }
 
     function loadPluginContent() {
