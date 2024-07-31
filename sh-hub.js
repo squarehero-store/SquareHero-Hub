@@ -20,11 +20,10 @@
             } else {
                 console.log('Code injection link not found');
             }
-
+    
             setupAccordions();
             showLoadingSymbol();
             loadAccordionContent();
-            loadSquarespaceHelpContent();
             loadPluginContent();
         } else {
             console.log('SquareHero Hub container not found. Exiting.');
