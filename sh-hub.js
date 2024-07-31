@@ -1,6 +1,6 @@
-// =================================================
-//           ⚡ SquareHero Hub v0.2.3 ⚡
-// =================================================
+// ==============================================
+//           ⚡ SquareHero Hub  ⚡
+// ==============================================
 (function() {
     function initSquareHeroHub() {
         const hubContainer = document.querySelector('div[data-squarehero="section-name"][sh-section="sh-hub"]');
@@ -46,12 +46,12 @@
             <div class="main-content" style="display: flex;">
                 <div class="left-column">
                     <div class="section">
-                        <h3>Resources</h3>
+                        <h3>Guide by Topic</h3>
                         <div class="accordion-wrapper" id="accordionWrapper">
                             <div class="accordion active">
                                 <div class="accordion-header">
                                     <h4>Getting Started</h4>
-                                    <p class="accordion-description">Follow our guide to set up your Squarehero template quickly and easily.</p>
+                                    <p class="accordion-description">Set up and launch your SquareHero website with ease.</p>
                                     <div class="accordion-svg rotate"></div>
                                 </div>
                                 <div class="accordion-content active" id="accordionContent" style="max-height: 1000px; opacity: 1;">
@@ -60,8 +60,8 @@
                             </div>
                             <div class="accordion">
                                 <div class="accordion-header">
-                                    <h4>Squarespace Help Docs</h4>
-                                    <p class="accordion-description">Access Squarespace official help documents.</p>
+                                    <h4>Squarespace Help</h4>
+                                    <p class="accordion-description">Expert tips for your Squarespace site.</p>
                                     <div class="accordion-svg"></div>
                                 </div>
                                 <div class="accordion-content" id="squarespaceAccordionContent">
@@ -167,41 +167,45 @@
         fetch(sheetUrl)
             .then(response => response.text())
             .then(data => {
-                const rows = data.split('\n').slice(1);
-                console.log(`Fetched ${rows.length} rows of accordion content`);
-                const accordionContent = document.getElementById('accordionContent');
-                rows.forEach((row, index) => {
-                    const [link, title] = row.split(',');
-                    const a = document.createElement('a');
-                    a.href = '#';
-                    a.classList.add('doc-link');
-                    a.setAttribute('data-doc-url', link);
-                    a.textContent = title;
-                    const docIcon = document.createElement('img');
-                    docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
-                    docIcon.classList.add('doc-icon');
-                    const docItem = document.createElement('div');
-                    docItem.classList.add('doc-item');
-                    docItem.appendChild(docIcon);
-                    docItem.appendChild(a);
-                    accordionContent.appendChild(docItem);
-                    console.log(`Added accordion item ${index + 1}: ${title}`);
+                Papa.parse(data, {
+                    complete: function(results) {
+                        const rows = results.data.slice(1);
+                        console.log(`Fetched ${rows.length} rows of accordion content`);
+                        const accordionContent = document.getElementById('accordionContent');
+                        rows.forEach((row, index) => {
+                            const [link, title] = row;
+                            const a = document.createElement('a');
+                            a.href = '#';
+                            a.classList.add('doc-link');
+                            a.setAttribute('data-doc-url', link);
+                            a.textContent = title;
+                            const docIcon = document.createElement('img');
+                            docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
+                            docIcon.classList.add('doc-icon');
+                            const docItem = document.createElement('div');
+                            docItem.classList.add('doc-item');
+                            docItem.appendChild(docIcon);
+                            docItem.appendChild(a);
+                            accordionContent.appendChild(docItem);
+                            console.log(`Added accordion item ${index + 1}: ${title}`);
+                        });
+                        document.querySelectorAll('.doc-link').forEach(link => {
+                            link.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
+                                console.log('Clicked link, docUrl:', docUrl);
+                                showLoadingSymbol();
+                                fetchGoogleDocContent(docUrl);
+                            });
+                        });
+                        console.log('Added click events to doc links');
+                        setTimeout(() => {
+                            hideLoadingSymbol();
+                            console.log('Loading symbol hidden');
+                        }, 300);
+                        setupAccordions();
+                    }
                 });
-                document.querySelectorAll('.doc-link').forEach(link => {
-                    link.addEventListener('click', function(event) {
-                        event.preventDefault();
-                        const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                        console.log('Clicked link, docUrl:', docUrl);
-                        showLoadingSymbol();
-                        fetchGoogleDocContent(docUrl);
-                    });
-                });
-                console.log('Added click events to doc links');
-                setTimeout(() => {
-                    hideLoadingSymbol();
-                    console.log('Loading symbol hidden');
-                }, 300);
-                setupAccordions();
             })
             .catch(error => {
                 console.error('Error fetching Google Sheet:', error);
@@ -214,25 +218,29 @@
         fetch(sheetUrl)
             .then(response => response.text())
             .then(data => {
-                const rows = data.split('\n').slice(1);
-                const squarespaceAccordionContent = document.getElementById('squarespaceAccordionContent');
-                rows.forEach(row => {
-                    const [link, title] = row.split(',');
-                    const a = document.createElement('a');
-                    a.href = link;
-                    a.target = '_blank';  // Open link in new tab
-                    a.textContent = title;
-                    const docIcon = document.createElement('img');
-                    docIcon.src = 'https://squarehero-cafe-cozy.squarespace.com/s/sh-hub-doc.svg';
-                    docIcon.classList.add('doc-icon');
-                    const docItem = document.createElement('div');
-                    docItem.classList.add('doc-item');
-                    docItem.appendChild(docIcon);
-                    docItem.appendChild(a);
-                    squarespaceAccordionContent.appendChild(docItem);
+                Papa.parse(data, {
+                    complete: function(results) {
+                        const rows = results.data.slice(1);
+                        const squarespaceAccordionContent = document.getElementById('squarespaceAccordionContent');
+                        rows.forEach(row => {
+                            const [link, title] = row;
+                            const a = document.createElement('a');
+                            a.href = link;
+                            a.target = '_blank';  // Open link in new tab
+                            a.textContent = title;
+                            const docIcon = document.createElement('img');
+                            docIcon.src = 'https://squarehero-cafe-cozy.squarespace.com/s/sh-hub-doc.svg';
+                            docIcon.classList.add('doc-icon');
+                            const docItem = document.createElement('div');
+                            docItem.classList.add('doc-item');
+                            docItem.appendChild(docIcon);
+                            docItem.appendChild(a);
+                            squarespaceAccordionContent.appendChild(docItem);
+                        });
+                        setupAccordions();
+                        console.log('Accordions set up after loading Squarespace Help Content');
+                    }
                 });
-                setupAccordions();
-                console.log('Accordions set up after loading Squarespace Help Content');
             })
             .catch(error => {
                 console.error('Error fetching Squarespace Help Docs:', error);
@@ -244,26 +252,30 @@
         fetch(sheetUrl)
             .then(response => response.text())
             .then(data => {
-                const rows = data.split('\n').slice(1);
-                const metaTags = Array.from(document.querySelectorAll('meta[squarehero-plugin]')).map(meta => meta.getAttribute('squarehero-plugin'));
-                rows.forEach(row => {
-                    const [metaName, displayName, helpDocUrl] = row.split(',');
-                    if (metaTags.includes(metaName)) {
-                        const metaTag = document.querySelector(`meta[squarehero-plugin="${metaName}"]`);
-                        const status = metaTag.getAttribute('enabled');
-                        addPlugin(metaName, displayName, status, helpDocUrl);
+                Papa.parse(data, {
+                    complete: function(results) {
+                        const rows = results.data.slice(1);
+                        const metaTags = Array.from(document.querySelectorAll('meta[squarehero-plugin]')).map(meta => meta.getAttribute('squarehero-plugin'));
+                        rows.forEach(row => {
+                            const [metaName, displayName, helpDocUrl] = row;
+                            if (metaTags.includes(metaName)) {
+                                const metaTag = document.querySelector(`meta[squarehero-plugin="${metaName}"]`);
+                                const status = metaTag.getAttribute('enabled');
+                                addPlugin(metaName, displayName, status, helpDocUrl);
+                            }
+                        });
+                        document.querySelectorAll('.plugin-status .doc-link').forEach(link => {
+                            link.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
+                                console.log('Clicked plugin link, docUrl:', docUrl);
+                                showLoadingSymbol();
+                                fetchGoogleDocContent(docUrl);
+                            });
+                        });
+                        hideLoadingSymbol();
                     }
                 });
-                document.querySelectorAll('.plugin-status .doc-link').forEach(link => {
-                    link.addEventListener('click', function(event) {
-                        event.preventDefault();
-                        const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                        console.log('Clicked plugin link, docUrl:', docUrl);
-                        showLoadingSymbol();
-                        fetchGoogleDocContent(docUrl);
-                    });
-                });
-                hideLoadingSymbol();
             })
             .catch(error => {
                 console.error('Error fetching Google Sheet:', error);
