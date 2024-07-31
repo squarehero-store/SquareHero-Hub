@@ -149,22 +149,31 @@
         console.log(`Found ${accordionHeaders.length} accordion headers`);
         
         accordionHeaders.forEach((header, index) => {
+            const accordion = header.parentElement;
+            const content = accordion.querySelector('.accordion-content');
+            
+            // Set initial state
+            content.style.maxHeight = '0';
+            content.style.opacity = '0';
+            content.style.marginTop = '0';
+            
             header.addEventListener('click', function(event) {
                 console.log(`Accordion ${index + 1} clicked`);
-                const accordion = this.parentElement;
-                accordion.classList.toggle('active');
-                const content = accordion.querySelector('.accordion-content');
                 console.log('Content element:', content);
                 console.log('Initial maxHeight:', content.style.maxHeight);
+                
+                accordion.classList.toggle('active');
                 
                 if (accordion.classList.contains('active')) {
                     content.style.maxHeight = content.scrollHeight + 'px';
                     content.style.opacity = '1';
+                    content.style.marginTop = '20px';
                     this.querySelector('.accordion-svg').classList.add('rotate');
                     console.log(`Accordion ${index + 1} opened. New maxHeight:`, content.style.maxHeight);
                 } else {
                     content.style.maxHeight = '0';
                     content.style.opacity = '0';
+                    content.style.marginTop = '0';
                     this.querySelector('.accordion-svg').classList.remove('rotate');
                     console.log(`Accordion ${index + 1} closed`);
                 }
