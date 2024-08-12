@@ -45,7 +45,7 @@
             <div class="main-content" style="display: flex;">
                 <div class="left-column">
                     <div class="section">
-                        <h3>Guide by Topic</h3>
+                        <h3>Guides By Topic</h3>
                         <div class="accordion-wrapper" id="accordionWrapper">
                             <div class="accordion">
                                 <div class="accordion-header">
@@ -82,7 +82,7 @@
                 </div>
                 <div class="right-column">
                     <div class="section">
-                        <h3>Plugin & Customizations</h3>
+                        <h3>Plugins & Customizations</h3>
                         <div id="pluginSection" class="plugin-section"></div>
                     </div>
                     <div class="section instructions">
@@ -145,22 +145,21 @@
 
     function setupAccordions() {
         console.log('Setting up accordions...');
-        const accordionHeaders = document.querySelectorAll('.accordion-header');
-        console.log(`Found ${accordionHeaders.length} accordion headers`);
+        const accordions = document.querySelectorAll('.accordion');
+        console.log(`Found ${accordions.length} accordions`);
         
-        accordionHeaders.forEach((header, index) => {
-            const accordion = header.parentElement;
+        accordions.forEach((accordion, index) => {
+            const header = accordion.querySelector('.accordion-header');
             const content = accordion.querySelector('.accordion-content');
             
-            // Set initial state
-            content.style.maxHeight = '0';
-            content.style.opacity = '0';
-            content.style.marginTop = '0';
+            console.log(`Accordion ${index + 1} initial state:`, {
+                maxHeight: content.style.maxHeight,
+                opacity: content.style.opacity,
+                marginTop: content.style.marginTop
+            });
             
-            header.addEventListener('click', function(event) {
+            header.addEventListener('click', function() {
                 console.log(`Accordion ${index + 1} clicked`);
-                console.log('Content element:', content);
-                console.log('Initial maxHeight:', content.style.maxHeight);
                 
                 accordion.classList.toggle('active');
                 
@@ -168,16 +167,21 @@
                     content.style.maxHeight = content.scrollHeight + 'px';
                     content.style.opacity = '1';
                     content.style.marginTop = '20px';
-                    this.querySelector('.accordion-svg').classList.add('rotate');
-                    console.log(`Accordion ${index + 1} opened. New maxHeight:`, content.style.maxHeight);
+                    console.log(`Accordion ${index + 1} opened. New maxHeight: ${content.style.maxHeight}`);
                 } else {
-                    content.style.maxHeight = '0';
+                    content.style.maxHeight = '0px';
                     content.style.opacity = '0';
-                    content.style.marginTop = '0';
-                    this.querySelector('.accordion-svg').classList.remove('rotate');
+                    content.style.marginTop = '0px';
                     console.log(`Accordion ${index + 1} closed`);
                 }
+                
+                console.log(`Accordion ${index + 1} new state:`, {
+                    maxHeight: content.style.maxHeight,
+                    opacity: content.style.opacity,
+                    marginTop: content.style.marginTop
+                });
             });
+            
             console.log(`Event listener added to accordion ${index + 1}`);
         });
     }
@@ -243,6 +247,8 @@
                 });
         });
     }
+
+    document.addEventListener('DOMContentLoaded', setupAccordions);
 
     function loadPluginContent() {
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1927723336&single=true&output=csv';
