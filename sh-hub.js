@@ -1,18 +1,17 @@
 // ==============================================
-//           ⚡ SquareHero Hub  ⚡
+//           ⚡ SquareHero Hub ⚡
 // ==============================================
-(function() {
+(function () {
     function initSquareHeroHub() {
         const hubContainer = document.querySelector('div[data-squarehero="section-name"][sh-section="sh-hub"]');
         if (hubContainer) {
             console.log('SquareHero Hub container found. Initializing...');
             injectHTML(hubContainer);
             document.body.classList.add('squarehero-hub');
-            
-            // Add the event listener for the code injection link
+
             const codeInjectionLink = document.getElementById('code-injection-link');
             if (codeInjectionLink) {
-                codeInjectionLink.addEventListener('click', function(event) {
+                codeInjectionLink.addEventListener('click', function (event) {
                     event.preventDefault();
                     window.top.location.href = this.href;
                 });
@@ -20,7 +19,7 @@
             } else {
                 console.log('Code injection link not found');
             }
-    
+
             setupAccordions();
             showLoadingSymbol();
             loadAccordionContent();
@@ -95,11 +94,119 @@
         `;
     }
 
-    // Initialize on DOM content loaded
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSquareHeroHub);
-    } else {
-        initSquareHeroHub();
+    function setupAccordions() {
+        const accordions = document.querySelectorAll('.accordion');
+        accordions.forEach(accordion => {
+            const header = accordion.querySelector('.accordion-header');
+            const content = accordion.querySelector('.accordion-content');
+
+            header.addEventListener('click', function () {
+                accordion.classList.toggle('active');
+                if (accordion.classList.contains('active')) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                } else {
+                    content.style.maxHeight = '0px';
+                }
+            });
+        });
+    }
+
+    function loadAccordionContent() {
+        const sheetUrls = [
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv',
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
+        ];
+
+        const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
+
+        sheetUrls.forEach((url, index) => {
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    Papa.parse(data, {
+                        complete: function (results) {
+                            const rows = results.data.slice(1);
+                            const accordionContent = document.getElementById(accordionIds[index]);
+                            rows.forEach(row => {
+                                const [link, title] = row;
+                                const docItem = createDocItem(link, title);
+                                accordionContent.appendChild(docItem);
+                            });
+                            if (index === sheetUrls.length - 1) {
+                                setupDocLinks();
+                                hideLoadingSymbol();
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error(`Error fetching Google Sheet for accordion ${index + 1}:`, error);
+                    hideLoadingSymbol();
+                });
+        });
+    }
+
+    function createDocItem(link, title) {
+        const docItem = document.createElement('div');
+        docItem.classList.add('doc-item');
+        const a = document.createElement('a');
+        a.href = '#';
+        a.classList.add('doc-link');
+        a.setAttribute('data-doc-url', link);
+        a.textContent = title;
+        const docIcon = document.createElement('img');
+        docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
+        docIcon.classList.add('doc-icon');
+        docItem.appendChild(docIcon);
+        docItem.appendChild(a);
+        return docItem;
+    }
+
+    function setupDocLinks() {
+        document.querySelectorAll('.doc-link').forEach(link => {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
+                showLoadingSymbol();
+                fetchGoogleDocContent(docUrl);
+            });
+        });
+    }
+
+    function loadPluginContent() {
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1927723336&single=true&output=csv';
+        fetch(sheetUrl)
+            .then(response => response.text())
+            .then(data => {
+                Papa.parse(data, {
+                    complete: function (results) {
+                        const rows = results.data.slice(1);
+                        const metaTags = Array.from(document.querySelectorAll('meta[squarehero-plugin]')).map(meta => meta.getAttribute('squarehero-plugin'));
+                        rows.forEach(row => {
+                            const [metaName, displayName, helpDocUrl] = row;
+                            if (metaTags.includes(metaName)) {
+                                const metaTag = document.querySelector(`meta[squarehero-plugin="${metaName}"]`);
+                                const status = metaTag.getAttribute('enabled');
+                                addPlugin(metaName, displayName, status, helpDocUrl);
+                            }
+                        });
+                        document.querySelectorAll('.plugin-status .doc-link').forEach(link => {
+                            link.addEventListener('click', function (event) {
+                                event.preventDefault();
+                                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
+                                showLoadingSymbol();
+                                fetchGoogleDocContent(docUrl);
+                            });
+                        });
+                        hideLoadingSymbol();
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching Google Sheet:', error);
+                hideLoadingSymbol();
+            });
     }
 
     function addPlugin(name, displayName, status, helpDocUrl) {
@@ -143,149 +250,6 @@
         }
     }
 
-    function setupAccordions() {
-        console.log('Setting up accordions...');
-        const accordions = document.querySelectorAll('.accordion');
-        console.log(`Found ${accordions.length} accordions`);
-        
-        accordions.forEach((accordion, index) => {
-            const header = accordion.querySelector('.accordion-header');
-            const content = accordion.querySelector('.accordion-content');
-            
-            console.log(`Accordion ${index + 1} initial state:`, {
-                maxHeight: content.style.maxHeight,
-                opacity: content.style.opacity,
-                marginTop: content.style.marginTop
-            });
-            
-            header.addEventListener('click', function() {
-                console.log(`Accordion ${index + 1} clicked`);
-                
-                accordion.classList.toggle('active');
-                
-                if (accordion.classList.contains('active')) {
-                    content.style.maxHeight = content.scrollHeight + 'px';
-                    content.style.opacity = '1';
-                    content.style.marginTop = '20px';
-                    console.log(`Accordion ${index + 1} opened. New maxHeight: ${content.style.maxHeight}`);
-                } else {
-                    content.style.maxHeight = '0px';
-                    content.style.opacity = '0';
-                    content.style.marginTop = '0px';
-                    console.log(`Accordion ${index + 1} closed`);
-                }
-                
-                console.log(`Accordion ${index + 1} new state:`, {
-                    maxHeight: content.style.maxHeight,
-                    opacity: content.style.opacity,
-                    marginTop: content.style.marginTop
-                });
-            });
-            
-            console.log(`Event listener added to accordion ${index + 1}`);
-        });
-    }
-
-    function loadAccordionContent() {
-        const sheetUrls = [
-            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv',
-            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
-            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
-        ];
-    
-        const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
-    
-        sheetUrls.forEach((url, index) => {
-            fetch(url)
-                .then(response => response.text())
-                .then(data => {
-                    Papa.parse(data, {
-                        complete: function(results) {
-                            const rows = results.data.slice(1);
-                            console.log(`Fetched ${rows.length} rows for accordion ${index + 1}`);
-                            const accordionContent = document.getElementById(accordionIds[index]);
-                            rows.forEach((row, rowIndex) => {
-                                const [link, title] = row;
-                                const a = document.createElement('a');
-                                a.href = '#';
-                                a.classList.add('doc-link');
-                                a.setAttribute('data-doc-url', link);
-                                a.textContent = title;
-                                const docIcon = document.createElement('img');
-                                docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
-                                docIcon.classList.add('doc-icon');
-                                const docItem = document.createElement('div');
-                                docItem.classList.add('doc-item');
-                                docItem.appendChild(docIcon);
-                                docItem.appendChild(a);
-                                accordionContent.appendChild(docItem);
-                                console.log(`Added accordion item ${rowIndex + 1} to accordion ${index + 1}: ${title}`);
-                            });
-                            if (index === sheetUrls.length - 1) {
-                                document.querySelectorAll('.doc-link').forEach(link => {
-                                    link.addEventListener('click', function(event) {
-                                        event.preventDefault();
-                                        const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                                        console.log('Clicked link, docUrl:', docUrl);
-                                        showLoadingSymbol();
-                                        fetchGoogleDocContent(docUrl);
-                                    });
-                                });
-                                console.log('Added click events to doc links');
-                                setTimeout(() => {
-                                    hideLoadingSymbol();
-                                    console.log('Loading symbol hidden');
-                                }, 300);
-                                setupAccordions();
-                            }
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error(`Error fetching Google Sheet for accordion ${index + 1}:`, error);
-                    hideLoadingSymbol();
-                });
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', setupAccordions);
-
-    function loadPluginContent() {
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1927723336&single=true&output=csv';
-        fetch(sheetUrl)
-            .then(response => response.text())
-            .then(data => {
-                Papa.parse(data, {
-                    complete: function(results) {
-                        const rows = results.data.slice(1);
-                        const metaTags = Array.from(document.querySelectorAll('meta[squarehero-plugin]')).map(meta => meta.getAttribute('squarehero-plugin'));
-                        rows.forEach(row => {
-                            const [metaName, displayName, helpDocUrl] = row;
-                            if (metaTags.includes(metaName)) {
-                                const metaTag = document.querySelector(`meta[squarehero-plugin="${metaName}"]`);
-                                const status = metaTag.getAttribute('enabled');
-                                addPlugin(metaName, displayName, status, helpDocUrl);
-                            }
-                        });
-                        document.querySelectorAll('.plugin-status .doc-link').forEach(link => {
-                            link.addEventListener('click', function(event) {
-                                event.preventDefault();
-                                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                                console.log('Clicked plugin link, docUrl:', docUrl);
-                                showLoadingSymbol();
-                                fetchGoogleDocContent(docUrl);
-                            });
-                        });
-                        hideLoadingSymbol();
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching Google Sheet:', error);
-                hideLoadingSymbol();
-            });
-    }
-
     function cleanGoogleDocUrl(url) {
         if (url.includes('https://www.google.com/url?q=')) {
             const decodedUrl = decodeURIComponent(url.split('q=')[1].split('&')[0]);
@@ -295,7 +259,6 @@
     }
 
     function fetchGoogleDocContent(docUrl) {
-        console.log('Fetching Google Doc content from URL:', docUrl);
         fetch(docUrl)
             .then(response => response.text())
             .then(data => {
@@ -307,10 +270,8 @@
                 } else {
                     content = data;
                 }
-                console.log('Raw content fetched:', content);
-                content = renderPlaceholders(content); // Render placeholders
-                console.log('Content after rendering placeholders:', content);
-                content += renderFooter(); // Add footer to content
+                content = renderPlaceholders(content);
+                content += renderFooter();
                 displayHelpContent(content);
             })
             .catch(error => console.error('Error fetching Google Doc:', error))
@@ -320,10 +281,8 @@
     }
 
     function renderPlaceholders(content) {
-        console.log('Rendering placeholders...');
         content = content.replace(/{{ HERO ALERT }}(.*?){{ END HERO ALERT }}/gs, (match, p1) => {
-            console.log('Rendering HERO ALERT with content:', p1);
-            p1 = renderInnerPlaceholders(p1); // Render inner placeholders
+            p1 = renderInnerPlaceholders(p1);
             return `
                 <div class="alert hero-alert">
                     <h3>Hero Alert</h3>
@@ -332,8 +291,7 @@
             `;
         });
         content = content.replace(/{{ HERO TIP }}(.*?){{ END HERO TIP }}/gs, (match, p1) => {
-            console.log('Rendering HERO TIP with content:', p1);
-            p1 = renderInnerPlaceholders(p1); // Render inner placeholders
+            p1 = renderInnerPlaceholders(p1);
             return `
                 <div class="alert hero-tip">
                     <h3>Hero Tip</h3>
@@ -341,18 +299,15 @@
                 </div>
             `;
         });
-        content = renderInnerPlaceholders(content); // Render inner placeholders outside alerts
+        content = renderInnerPlaceholders(content);
         return content;
     }
 
     function renderInnerPlaceholders(text) {
-        console.log('Rendering inner placeholders for text:', text);
         text = text.replace(/{{ LINK }}\[([^\]]+)\]\(([^)]+)\){{ END LINK }}/g, (match, linkText, url) => {
-            console.log('Rendering LINK with text:', linkText, 'and URL:', url);
             return `<a href="${url}" target="_blank">${linkText}</a>`;
         });
         text = text.replace(/{{ GDOC }}\[([^\]]+)\]\(([^)]+)\){{ END GDOC }}/g, (match, linkText, url) => {
-            console.log('Rendering GDOC with text:', linkText, 'and URL:', url);
             return `<a href="#" class="doc-link" data-doc-url="${url}">${linkText}</a>`;
         });
         return text;
@@ -367,7 +322,7 @@
 
     function displayHelpContent(content) {
         const mainContent = document.querySelector('.main-content');
-        mainContent.style.display = 'none';  // Hide main content
+        mainContent.style.display = 'none';
         const helpContent = document.getElementById('helpContent');
         helpContent.innerHTML = `
             <div class="doc-content">
@@ -377,20 +332,20 @@
                 ${content}
             </div>
         `;
-        document.getElementById('backToHub').addEventListener('click', function(event) {
+        document.getElementById('backToHub').addEventListener('click', function (event) {
             event.preventDefault();
-            helpContent.classList.remove('visible');  // Fade-out help content
+            helpContent.classList.remove('visible');
             setTimeout(() => {
-                helpContent.innerHTML = '';  // Clear help content after fade-out
-                mainContent.style.display = 'flex';  // Show main content after fade-out
-            }, 300);  // Match the duration of the CSS transition
+                helpContent.innerHTML = '';
+                mainContent.style.display = 'flex';
+            }, 300);
         });
         setTimeout(() => {
-            helpContent.querySelector('.doc-content').classList.add('visible');  // Show help content with fade-in effect
-        }, 50);  // Delay to allow reflow
+            helpContent.querySelector('.doc-content').classList.add('visible');
+        }, 50);
 
         document.querySelectorAll('.doc-link').forEach(link => {
-            link.addEventListener('click', function(event) {
+            link.addEventListener('click', function (event) {
                 event.preventDefault();
                 const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
                 showLoadingSymbol();
@@ -401,12 +356,18 @@
 
     function showLoadingSymbol() {
         const loadingSymbol = document.getElementById('loadingSymbol');
-        loadingSymbol.classList.add('active');  // Show loading symbol
+        loadingSymbol.classList.add('active');
     }
 
     function hideLoadingSymbol() {
         const loadingSymbol = document.getElementById('loadingSymbol');
-        loadingSymbol.classList.remove('active');  // Hide loading symbol
+        loadingSymbol.classList.remove('active');
     }
 
+    // Initialize on DOM content loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSquareHeroHub);
+    } else {
+        initSquareHeroHub();
+    }
 })();
