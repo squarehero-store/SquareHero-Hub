@@ -146,8 +146,28 @@
                 });
         });
     }
+    function setupDocLinks() {
+        document.querySelectorAll('.doc-link').forEach(link => {
+            const accordionId = link.closest('.accordion-content').id;
+            if (accordionId === 'squarespaceAccordionContent') {
+                // For Squarespace Help links, open in a new window
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    window.open(this.getAttribute('data-doc-url'), '_blank');
+                });
+            } else {
+                // For other links, load Google Doc content
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
+                    showLoadingSymbol();
+                    fetchGoogleDocContent(docUrl);
+                });
+            }
+        });
+    }
 
-    function createDocItem(link, title) {
+    function createDocItem(link, title, isExternalLink = false) {
         const docItem = document.createElement('div');
         docItem.classList.add('doc-item');
         const a = document.createElement('a');
@@ -155,6 +175,10 @@
         a.classList.add('doc-link');
         a.setAttribute('data-doc-url', link);
         a.textContent = title;
+        if (isExternalLink) {
+            a.setAttribute('target', '_blank');
+            a.setAttribute('rel', 'noopener noreferrer');
+        }
         const docIcon = document.createElement('img');
         docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
         docIcon.classList.add('doc-icon');
@@ -163,14 +187,47 @@
         return docItem;
     }
 
-    function setupDocLinks() {
-        document.querySelectorAll('.doc-link').forEach(link => {
-            link.addEventListener('click', function (event) {
-                event.preventDefault();
-                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                showLoadingSymbol();
-                fetchGoogleDocContent(docUrl);
-            });
+    function loadAccordionContent() {
+        const sheetUrls = [
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv',
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
+        ];
+
+        const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
+
+        let loadedCount = 0;
+
+        sheetUrls.forEach((url, index) => {
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    Papa.parse(data, {
+                        complete: function (results) {
+                            const rows = results.data.slice(1);
+                            const accordionContent = document.getElementById(accordionIds[index]);
+                            rows.forEach(row => {
+                                const [link, title] = row;
+                                const isExternalLink = accordionIds[index] === 'squarespaceAccordionContent';
+                                const docItem = createDocItem(link, title, isExternalLink);
+                                accordionContent.appendChild(docItem);
+                            });
+                            loadedCount++;
+                            if (loadedCount === sheetUrls.length) {
+                                setupDocLinks();
+                                hideLoadingSymbol();
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error(`Error fetching Google Sheet for accordion ${index + 1}:`, error);
+                    loadedCount++;
+                    if (loadedCount === sheetUrls.length) {
+                        setupDocLinks();
+                        hideLoadingSymbol();
+                    }
+                });
         });
     }
 
