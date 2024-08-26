@@ -30,6 +30,7 @@
     }
 
     function injectHTML(container) {
+        const templateName = container.getAttribute('template-name') || 'Default Template';
         container.innerHTML = `
             <header>
                 <div class="sh-hub--logo">
@@ -37,7 +38,7 @@
                 </div>
                 <div>
                     <h1>SquareHero Hub</h1>
-                    <p>Café Cozy Template</p>
+                    <p>${templateName} Template</p>
                 </div>
                 <button>SquareHero Support</button>
             </header>
