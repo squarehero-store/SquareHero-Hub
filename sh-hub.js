@@ -25,7 +25,7 @@
             loadAccordionContent();
             loadPluginContent();
         } else {
-            console.log('SquareHero Hub container not found. Exiting.');
+            console.log('SquareHero Hub container was not found. Exiting.');
         }
     }
 
