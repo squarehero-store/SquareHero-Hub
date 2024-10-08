@@ -18,6 +18,7 @@
   font-family: "Red Hat Display", sans-serif;
   font-weight: 800 !important;
   color: #011e45;
+  text-transform: none!important;
 }
 .squarehero-hub p {
   font-family: "Roboto Condensed", sans-serif;

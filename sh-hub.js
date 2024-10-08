@@ -31,17 +31,22 @@
 
     function injectHTML(container) {
         const templateMeta = document.querySelector('meta[squarehero-template]');
-        const templateName = templateMeta ? formatTemplateName(templateMeta.getAttribute('squarehero-template')) : 'Default Template';
+        const templateName = templateMeta ? formatTemplateName(templateMeta.getAttribute('squarehero-template')) : '';
+        
+        let headerContent = `
+            <div class="sh-hub--logo">
+                <img src="https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/SquareHero_Final-Logo-Reversed.png">
+            </div>
+            <div>
+                <h1>SquareHero Hub</h1>
+                ${templateName ? `<p>${templateName} Template</p>` : ''}
+            </div>
+            <button>SquareHero Support</button>
+        `;
+    
         container.innerHTML = `
             <header>
-                <div class="sh-hub--logo">
-                    <img src="https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/SquareHero_Final-Logo-Reversed.png">
-                </div>
-                <div>
-                    <h1>SquareHero Hub</h1>
-                    <p>${templateName} Template</p>
-                </div>
-                <button>SquareHero Support</button>
+                ${headerContent}
             </header>
             <div class="main-content" style="display: flex;">
                 <div class="left-column">
