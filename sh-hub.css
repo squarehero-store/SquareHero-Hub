@@ -275,11 +275,19 @@
   font-family: "Red Hat Display", sans-serif;
   font-size: 1.125rem;
 }
+.squarehero-hub #SquareHeroHub .plugin-status .status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
 .squarehero-hub #SquareHeroHub .plugin-status .status {
   flex: 0 0 auto;
   padding: 5px 10px;
   color: white;
+  text-align: center;
   border-radius: 0px;
+  min-width: 90px;
   font-size: 1rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -289,6 +297,12 @@
 }
 .squarehero-hub #SquareHeroHub .plugin-status .status.disabled {
   background-color: #fea800;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .status.dark-mode {
+  background-color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .plugin-status .status-container .status.enabled + .status.dark-mode {
+  margin-top: 5px;
 }
 .squarehero-hub #SquareHeroHub .instructions {
   margin-top: 20px;

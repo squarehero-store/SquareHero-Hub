@@ -1,25 +1,21 @@
 <!-- 🛑 CRITICAL: SquareHero Hub Files - DO NOT REMOVE 🛑 -->
 <!-- Without them, we lose our superpowers! -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-<div data-squarehero="section-name" template-name="Café Cozy" sh-section="sh-hub" id="SquareHeroHub" class="container"></div>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<div data-squarehero="section-name" template-name="Cornerstone Builders" sh-section="sh-hub" id="SquareHeroHub" class="container"></div>
 <script>
 (function(){
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub.min.js?v=' + new Date().getTime();
-  document.head.appendChild(script);
-})();
-</script>
-<script>
-(function(){
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub.min.css?v=' + new Date().getTime();
-  document.head.appendChild(link);
+    const loadResource = (type, url) => {
+        const element = document.createElement(type);
+        element.src = url + '?v=' + new Date().getTime();
+        if (type === 'link') {
+            element.rel = 'stylesheet';
+            element.href = element.src;
+        }
+        document.head.appendChild(element);
+    };
+
+    loadResource('script', 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub.min.js');
+    loadResource('link', 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub.min.css');
 })();
 </script>
