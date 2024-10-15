@@ -128,11 +128,11 @@
             'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
             'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
         ];
-
+    
         const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
-
+    
         let loadedCount = 0;
-
+    
         sheetUrls.forEach((url, index) => {
             fetch(url)
                 .then(response => response.text())
@@ -142,7 +142,7 @@
                             const rows = results.data.slice(1);
                             const accordionContent = document.getElementById(accordionIds[index]);
                             rows.forEach(row => {
-                                const [link, title] = row;
+                                const [title, link] = row; // Updated order: title then link
                                 const isExternalLink = accordionIds[index] === 'squarespaceAccordionContent';
                                 const docItem = createDocItem(link, title, isExternalLink);
                                 accordionContent.appendChild(docItem);
@@ -165,7 +165,7 @@
                 });
         });
     }
-
+    
     function createDocItem(link, title, isExternalLink = false) {
         const docItem = document.createElement('div');
         docItem.classList.add('doc-item');
