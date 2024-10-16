@@ -148,6 +148,7 @@
 .squarehero-hub #SquareHeroHub .main-content .doc-link {
   text-decoration: underline;
   color: #011e45;
+  text-align: left;
 }
 .squarehero-hub #SquareHeroHub .main-content a {
   text-decoration: underline;

@@ -2,7 +2,18 @@
 //           ⚡ SquareHero Hub ⚡
 // ==============================================
 (function () {
+    // Debug logging function
+    function debug(message, data) {
+        console.log(`[SquareHero Debug] ${message}`, data);
+    }
+
+    // Error logging function
+    function logError(message, error) {
+        console.error(`[SquareHero Error] ${message}`, error);
+    }
+
     function initSquareHeroHub() {
+        debug('Initializing SquareHero Hub');
         const hubContainer = document.querySelector('div[data-squarehero="section-name"][sh-section="sh-hub"]');
         if (hubContainer) {
             console.log('SquareHero Hub container found. Initializing...');
@@ -24,15 +35,57 @@
             showLoadingSymbol();
             loadAccordionContent();
             loadFeatureContent();
+            
+            // Add a global click listener to handle dynamically added elements
+            document.addEventListener('click', handleGlobalClick);
         } else {
             console.log('SquareHero Hub container was not found. Exiting.');
+        }
+    }
+
+    function handleGlobalClick(event) {
+        const target = event.target.closest('.doc-link');
+        if (target) {
+            debug('Doc link clicked via global handler', target.getAttribute('data-doc-url'));
+            event.preventDefault();
+            handleDocLinkClick(target);
+        }
+    }
+
+    function handleDocLinkClick(link) {
+        try {
+            const docUrl = cleanGoogleDocUrl(link.getAttribute('data-doc-url'));
+            showLoadingSymbol();
+
+            if (docUrl.includes('spreadsheets/d/')) {
+                debug('Detected spreadsheet link', docUrl);
+                handleSpreadsheetLink(docUrl);
+            } else {
+                debug('Detected regular doc link', docUrl);
+                fetchGoogleDocContent(docUrl)
+                    .then(content => {
+                        content += renderFooter();
+                        displayHelpContent(content, false);
+                    })
+                    .catch(error => {
+                        logError('Error fetching Google Doc:', error);
+                        displayErrorMessage('Failed to load document. Please try again later.');
+                    })
+                    .finally(() => {
+                        hideLoadingSymbol();
+                    });
+            }
+        } catch (error) {
+            logError('Error in doc link click handler:', error);
+            displayErrorMessage('An unexpected error occurred. Please try again later.');
+            hideLoadingSymbol();
         }
     }
 
     function injectHTML(container) {
         const templateMeta = document.querySelector('meta[squarehero-template]');
         const templateName = templateMeta ? formatTemplateName(templateMeta.getAttribute('squarehero-template')) : '';
-
+    
         let headerContent = `
             <div class="sh-hub--logo">
                 <img src="https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/SquareHero_Final-Logo-Reversed.png">
@@ -43,7 +96,7 @@
             </div>
             <button>SquareHero Support</button>
         `;
-
+    
         container.innerHTML = `
             <header>
                 ${headerContent}
@@ -103,7 +156,7 @@
                 </svg>
             </div>
         `;
-
+    
         // Inject the SVG gradient definition
         const svgGradient = `
             <svg width="0" height="0">
@@ -166,10 +219,12 @@
                             const rows = results.data.slice(1);
                             const accordionContent = document.getElementById(accordionIds[index]);
                             rows.forEach(row => {
-                                const [title, link] = row; // Updated order: title then link
-                                const isExternalLink = accordionIds[index] === 'squarespaceAccordionContent';
-                                const docItem = createDocItem(link, title, isExternalLink);
-                                accordionContent.appendChild(docItem);
+                                if (row.length >= 2 && row[1].trim() !== '') {
+                                    const [title, link] = row;
+                                    const isExternalLink = accordionIds[index] === 'squarespaceAccordionContent';
+                                    const docItem = createDocItem(link, title, isExternalLink);
+                                    accordionContent.appendChild(docItem);
+                                }
                             });
                             loadedCount++;
                             if (loadedCount === sheetUrls.length) {
@@ -180,7 +235,7 @@
                     });
                 })
                 .catch(error => {
-                    console.error(`Error fetching Google Sheet for accordion ${index + 1}:`, error);
+                    logError(`Error fetching Google Sheet for accordion ${index + 1}:`, error);
                     loadedCount++;
                     if (loadedCount === sheetUrls.length) {
                         setupDocLinks();
@@ -226,11 +281,11 @@
                         const pluginMetas = Array.from(document.querySelectorAll('meta[squarehero-plugin]'));
                         pluginMetas.forEach(meta => {
                             const pluginName = meta.getAttribute('squarehero-plugin');
-                            const matchingRow = rows.find(row => row[0] === pluginName);
+                            const matchingRow = rows.find(row => row[0] === pluginName && row.length >= 3 && row[2].trim() !== '');
                             if (matchingRow) {
                                 const [_, displayName, helpDocUrl] = matchingRow;
                                 const status = meta.getAttribute('enabled');
-                                addFeature(pluginName, displayName, status, helpDocUrl || '', 'plugin');
+                                addFeature(pluginName, displayName, status, helpDocUrl, 'plugin');
                             }
                         });
 
@@ -239,12 +294,12 @@
                         customizationMetas.forEach(meta => {
                             const customizationName = meta.getAttribute('squarehero-customization');
                             const sheetKey = `${templateName}-${customizationName}`;
-                            const matchingRow = rows.find(row => row[0] === sheetKey);
+                            const matchingRow = rows.find(row => row[0] === sheetKey && row.length >= 3 && row[2].trim() !== '');
                             if (matchingRow) {
                                 const [_, displayName, helpDocUrl] = matchingRow;
                                 const status = meta.getAttribute('enabled');
                                 const darkMode = meta.getAttribute('darkmode');
-                                addFeature(customizationName, displayName, status, helpDocUrl || '', 'customization', darkMode);
+                                addFeature(customizationName, displayName, status, helpDocUrl, 'customization', darkMode);
                             }
                         });
 
@@ -254,7 +309,7 @@
                 });
             })
             .catch(error => {
-                console.error('Error fetching Google Sheet:', error);
+                logError('Error fetching Google Sheet:', error);
                 hideLoadingSymbol();
             });
     }
@@ -280,7 +335,6 @@
 
             featureInfo.appendChild(featureTitle);
 
-            // Only add the documentation link if a help document URL is provided
             if (helpDocUrl && helpDocUrl.trim() !== '') {
                 const helpLink = document.createElement('a');
                 helpLink.href = '#';
@@ -301,7 +355,6 @@
             statusSpan.textContent = status === 'true' ? 'Enabled' : 'Disabled';
             statusContainer.appendChild(statusSpan);
 
-            // Add DARK MODE indicator if darkMode is true
             if (darkMode === 'true') {
                 const darkModeSpan = document.createElement('span');
                 darkModeSpan.classList.add('status', 'dark-mode');
@@ -316,44 +369,22 @@
     }
 
     function setupDocLinks() {
+        debug('Setting up doc links');
         document.querySelectorAll('.doc-link').forEach(link => {
             link.addEventListener('click', function (event) {
+                debug('Doc link clicked via direct listener', this.getAttribute('data-doc-url'));
                 event.preventDefault();
-                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                showLoadingSymbol();
-
-                if (docUrl.includes('spreadsheets/d/')) {
-                    handleSpreadsheetLink(docUrl);
-                } else {
-                    fetchGoogleDocContent(docUrl)
-                        .then(content => {
-                            content += renderFooter();
-                            displayHelpContent(content, false);
-                        })
-                        .catch(error => console.error('Error fetching Google Doc:', error))
-                        .finally(() => {
-                            hideLoadingSymbol();
-                        });
-                }
+                handleDocLinkClick(this);
             });
         });
+        debug('Doc links setup complete');
     }
 
     function setupFeatureLinks() {
         document.querySelectorAll('.plugin-status .doc-link').forEach(link => {
             link.addEventListener('click', function (event) {
                 event.preventDefault();
-                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                showLoadingSymbol();
-                fetchGoogleDocContent(docUrl)
-                    .then(content => {
-                        content += renderFooter();
-                        displayHelpContent(content, false);
-                    })
-                    .catch(error => console.error('Error fetching Google Doc:', error))
-                    .finally(() => {
-                        hideLoadingSymbol();
-                    });
+                handleDocLinkClick(this);
             });
         });
     }
@@ -366,27 +397,118 @@
         return url;
     }
 
-    function renderPlaceholders(content) {
-        content = content.replace(/{{ HERO ALERT }}(.*?){{ END HERO ALERT }}/gs, (match, p1) => {
-            p1 = renderInnerPlaceholders(p1);
-            return `
-                <div class="alert hero-alert">
-                    <h3>Hero Alert</h3>
-                    <p>${p1.trim()}</p>
-                </div>
-            `;
-        });
-        content = content.replace(/{{ HERO TIP }}(.*?){{ END HERO TIP }}/gs, (match, p1) => {
-            p1 = renderInnerPlaceholders(p1);
-            return `
-                <div class="alert hero-tip">
-                    <h3>Hero Tip</h3>
-                    <p>${p1.trim()}</p>
-                </div>
-            `;
-        });
-        content = renderInnerPlaceholders(content);
-        return content;
+    function handleSpreadsheetLink(spreadsheetUrl) {
+        debug('Handling spreadsheet link', spreadsheetUrl);
+        showLoadingSymbol();
+        fetch(spreadsheetUrl)
+            .then(response => {
+                debug('Spreadsheet fetch response', response);
+                return response.text();
+            })
+            .then(data => {
+                debug('Spreadsheet raw data', data.substring(0, 100) + '...');
+                Papa.parse(data, {
+                    complete: function (results) {
+                        debug('Papa Parse results', results);
+                        if (results.errors.length > 0) {
+                            throw new Error('Failed to parse spreadsheet data');
+                        }
+
+                        const rows = results.data.slice(1); // Skip the header row
+                        debug('Parsed rows', rows.length);
+                        if (rows.length === 0) {
+                            throw new Error('No valid data found in the spreadsheet');
+                        }
+
+                        let anchorLinks = '<div class="anchor-links">';
+                        let fetchPromises = [];
+
+                        rows.forEach((row, index) => {
+                            debug(`Processing row ${index}`, row);
+                            if (row.length >= 2 && row[1].trim() !== '') {
+                                const [title, docUrl] = row;
+                                const anchorId = `doc-${index}`;
+
+                                anchorLinks += `<a href="#${anchorId}" class="doc-anchor"><span>${title}</span></a>`;
+                                debug(`Added anchor link for ${title}`);
+
+                                fetchPromises.push(
+                                    fetchGoogleDocContent(docUrl)
+                                        .then(docContent => {
+                                            debug(`Fetched content for ${title}`, docContent.substring(0, 100) + '...');
+                                            return { index, content: `<div id="${anchorId}" class="doc-section">${docContent}</div>` };
+                                        })
+                                );
+                            } else {
+                                debug(`Skipped invalid row ${index}`, row);
+                            }
+                        });
+
+                        if (fetchPromises.length === 0) {
+                            throw new Error('No valid entries found in the spreadsheet');
+                        }
+
+                        anchorLinks += '</div>';
+                        debug('Final anchor links', anchorLinks);
+
+                        Promise.all(fetchPromises)
+                            .then(results => {
+                                debug('All promises resolved', results.length);
+                                results.sort((a, b) => a.index - b.index);
+                                const content = results.map(result => result.content).join('');
+                                debug('Final content length', content.length);
+                                displayHelpContent(anchorLinks + '<div class="docs-content">' + content + '</div>', true);
+                            })
+                            .catch(error => {
+                                logError('Error fetching multiple docs:', error);
+                                displayErrorMessage('Failed to load content. Please try again later.');
+                            })
+                            .finally(() => {
+                                hideLoadingSymbol();
+                            });
+                    },
+                    error: function(error) {
+                        logError('Error parsing spreadsheet:', error);
+                        displayErrorMessage('Failed to parse spreadsheet content. Please try again later.');
+                        hideLoadingSymbol();
+                    }
+                });
+            })
+            .catch(error => {
+                logError('Error fetching Google Spreadsheet:', error);
+                displayErrorMessage('Failed to fetch spreadsheet. Please try again later.');
+                hideLoadingSymbol();
+            });
+    }
+
+    function fetchGoogleDocContent(docUrl) {
+        return fetch(docUrl)
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                let content = doc.querySelector('.doc-content');
+                if (content) {
+                    content = content.innerHTML;
+                } else {
+                    content = data;
+                }
+                content = renderPlaceholders(content);
+                
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+
+                const links = tempDiv.querySelectorAll('a');
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                        link.setAttribute('target', '_blank');
+                        link.setAttribute('rel', 'noopener noreferrer');
+                    }
+                });
+
+                return tempDiv.innerHTML;
+            });
     }
 
     function renderPlaceholders(content) {
@@ -420,112 +542,14 @@
             return `<a href="#" class="doc-link" data-doc-url="${url}">${linkText}</a>`;
         });
         text = text.replace(/{{ CODEBLOCK }}([\s\S]*?){{ END CODEBLOCK }}/g, (match, codeContent) => {
-            // Remove any leading/trailing whitespace
             codeContent = codeContent.trim();
-
-            // Wrap the content in a hub-code-block div
             return `<div class="hub-code-block">${codeContent}</div>`;
         });
         return text;
     }
 
-    function handleSpreadsheetLink(spreadsheetUrl) {
-        showLoadingSymbol();
-        fetch(spreadsheetUrl)
-            .then(response => response.text())
-            .then(data => {
-                Papa.parse(data, {
-                    complete: function (results) {
-                        const rows = results.data.slice(1); // Skip the header row
-                        let anchorLinks = '<div class="anchor-links">';
-                        let fetchPromises = [];
-                        let contentOrder = [];
-
-                        rows.forEach((row, index) => {
-                            if (row.length >= 2) { // Ensure the row has both title and link
-                                const [title, docUrl] = row;
-                                const anchorId = `doc-${index}`;
-
-                                // Add anchor link
-                                anchorLinks += `<a href="#${anchorId}" class="doc-anchor"><span>${title}</span></a>`;
-
-                                // Fetch content and store promise with index
-                                fetchPromises.push(
-                                    fetchGoogleDocContent(docUrl)
-                                        .then(docContent => {
-                                            return { index, content: `<div id="${anchorId}" class="doc-section">${docContent}</div>` };
-                                        })
-                                );
-                            }
-                        });
-
-                        anchorLinks += '</div>';
-
-                        Promise.all(fetchPromises)
-                            .then(results => {
-                                // Sort results based on original index to maintain order
-                                results.sort((a, b) => a.index - b.index);
-
-                                // Join all content in correct order
-                                const content = results.map(result => result.content).join('');
-
-                                displayHelpContent(anchorLinks + '<div class="docs-content">' + content + '</div>', true);
-                            })
-                            .catch(error => console.error('Error fetching multiple docs:', error))
-                            .finally(() => {
-                                hideLoadingSymbol();
-                            });
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching Google Spreadsheet:', error);
-                hideLoadingSymbol();
-            });
-    }
-
-    function renderFooter() {
-        return `
-            <hr>
-            <p>Getting confused – or is our SquareHero Hub info not clear enough? Help us improve the SquareHero Hub by letting us know here of anything you think we've missed, links that aren't working, or content that you don't think is clear enough. Thank you for your assistance to make SquareHero Hub better!</p>
-        `;
-    }
-
-    function fetchGoogleDocContent(docUrl) {
-        return fetch(docUrl)
-            .then(response => response.text())
-            .then(data => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(data, 'text/html');
-                let content = doc.querySelector('.doc-content');
-                if (content) {
-                    content = content.innerHTML;
-                } else {
-                    content = data;
-                }
-                content = renderPlaceholders(content);
-
-                // Create a temporary div to parse the content
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = content;
-
-                // Find all links in the content
-                const links = tempDiv.querySelectorAll('a');
-                links.forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-                        // External link: add target and rel attributes
-                        link.setAttribute('target', '_blank');
-                        link.setAttribute('rel', 'noopener noreferrer');
-                    }
-                });
-
-                // Return the modified content
-                return tempDiv.innerHTML;
-            });
-    }
-
     function displayHelpContent(content, isMultipleDocs = false) {
+        debug('Displaying help content', { isMultipleDocs, contentLength: content.length });
         const mainContent = document.querySelector('.main-content');
         mainContent.style.display = 'none';
         const helpContent = document.getElementById('helpContent');
@@ -557,7 +581,6 @@
             if (isMultipleDocs) {
                 setupSmoothScrolling();
                 setupScrollProgress();
-                // Set the first anchor as active on page load
                 const firstAnchor = document.querySelector('.anchor-links a.doc-anchor');
                 if (firstAnchor) {
                     firstAnchor.classList.add('active');
@@ -566,13 +589,13 @@
             }
         }, 50);
 
-        setupDocLinks(); // Re-setup doc links for any new content
+        setupDocLinks();
         if (isMultipleDocs) {
             setupSmoothScrolling();
             setupScrollProgress();
         }
+        debug('Help content displayed');
     }
-
 
     function setupSmoothScrolling() {
         document.querySelectorAll('.anchor-links a.doc-anchor').forEach(anchor => {
@@ -584,7 +607,6 @@
             });
         });
     }
-
 
     function setupScrollProgress() {
         const docSections = document.querySelectorAll('.doc-section');
@@ -618,7 +640,6 @@
                 anchorLinks[index].style.setProperty('--progress', `${progress}%`);
             });
 
-            // Handle the case when scrolled to the very bottom of the page
             if (scrollTop + windowHeight >= documentHeight - 10) {
                 const lastIndex = docSections.length - 1;
                 anchorLinks[lastIndex].classList.add('active');
@@ -626,75 +647,75 @@
             }
         }
 
-        function scrollToSection(index) {
-            activeIndex = index;
-            docSections[index].scrollIntoView({ behavior: 'smooth' });
-
-            // Reset progress for all links
-            anchorLinks.forEach(link => {
-                link.style.setProperty('--progress', '0%');
-                link.classList.remove('active');
-            });
-
-            // Set the clicked link as active
-            anchorLinks[index].classList.add('active');
-
-            // Update progress after a short delay to ensure scroll has completed
-            setTimeout(updateProgress, 100);
-        }
-
-        // Initialize progress to 0 for all anchor links
-        anchorLinks.forEach(link => {
-            link.style.setProperty('--progress', '0%');
-        });
-
         window.addEventListener('scroll', updateProgress);
         window.addEventListener('resize', updateProgress);
 
-        // Add click event listeners to anchor links
-        anchorLinks.forEach((link, index) => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                scrollToSection(index);
-            });
-        });
-
-        // Initial update
         updateProgress();
     }
-
 
     function showLoadingSymbol() {
         const loadingSymbol = document.getElementById('loadingSymbol');
         const mainContent = document.querySelector('.main-content');
-
-        // Ensure the loading symbol is within the main content
+    
         if (loadingSymbol.parentNode !== mainContent) {
             mainContent.appendChild(loadingSymbol);
         }
-
-        // Show loading symbol
+    
         loadingSymbol.classList.add('active');
-
-        // Hide main content children except loading symbol
+    
         Array.from(mainContent.children).forEach(child => {
             if (child !== loadingSymbol) {
                 child.style.visibility = 'hidden';
             }
         });
     }
-
+    
     function hideLoadingSymbol() {
         const loadingSymbol = document.getElementById('loadingSymbol');
         const mainContent = document.querySelector('.main-content');
-
-        // Hide loading symbol
+    
         loadingSymbol.classList.remove('active');
-
-        // Show main content children
+    
         Array.from(mainContent.children).forEach(child => {
             child.style.visibility = 'visible';
         });
+    }
+
+    function displayErrorMessage(message) {
+        const helpContent = document.getElementById('helpContent');
+        helpContent.innerHTML = `
+            <div class="doc-content">
+                <div class="breadcrumb">
+                    <a href="#" id="backToHub">Return to SquareHero Hub</a>
+                </div>
+                <div class="content-wrapper single-doc">
+                    <div class="error-message">
+                        <h3>Error</h3>
+                        <p>${message}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('backToHub').addEventListener('click', function (event) {
+            event.preventDefault();
+            helpContent.classList.remove('visible');
+            setTimeout(() => {
+                helpContent.innerHTML = '';
+                document.querySelector('.main-content').style.display = 'flex';
+            }, 300);
+        });
+
+        setTimeout(() => {
+            helpContent.querySelector('.doc-content').classList.add('visible');
+        }, 50);
+    }
+
+    function renderFooter() {
+        return `
+            <hr>
+            <p>Getting confused – or is our SquareHero Hub info not clear enough? Help us improve the SquareHero Hub by letting us know here of anything you think we've missed, links that aren't working, or content that you don't think is clear enough. Thank you for your assistance to make SquareHero Hub better!</p>
+        `;
     }
 
     // Initialize on DOM content loaded
@@ -704,43 +725,3 @@
         initSquareHeroHub();
     }
 })();
-
-
-
-
-
-
-
-function fetchGoogleDocContent(docUrl) {
-    return fetch(docUrl)
-        .then(response => response.text())
-        .then(data => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data, 'text/html');
-            let content = doc.querySelector('.doc-content');
-            if (content) {
-                content = content.innerHTML;
-            } else {
-                content = data;
-            }
-            content = renderPlaceholders(content);
-
-            // Create a temporary div to parse the content
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = content;
-
-            // Find all links in the content
-            const links = tempDiv.querySelectorAll('a');
-            links.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-                    // External link: add target and rel attributes
-                    link.setAttribute('target', '_blank');
-                    link.setAttribute('rel', 'noopener noreferrer');
-                }
-            });
-
-            // Return the modified content
-            return tempDiv.innerHTML;
-        });
-}
