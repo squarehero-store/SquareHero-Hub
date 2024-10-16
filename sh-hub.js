@@ -32,7 +32,7 @@
     function injectHTML(container) {
         const templateMeta = document.querySelector('meta[squarehero-template]');
         const templateName = templateMeta ? formatTemplateName(templateMeta.getAttribute('squarehero-template')) : '';
-        
+
         let headerContent = `
             <div class="sh-hub--logo">
                 <img src="https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/SquareHero_Final-Logo-Reversed.png">
@@ -43,7 +43,7 @@
             </div>
             <button>SquareHero Support</button>
         `;
-    
+
         container.innerHTML = `
             <header>
                 ${headerContent}
@@ -97,8 +97,32 @@
                 </div>
             </div>
             <div id="helpContent" class="help-content"></div>
-            <div id="loadingSymbol" class="loading"><div class="spinner"></div></div>
+            <div id="loadingSymbol" class="loading">
+                <svg class="hexagon-loader" xmlns="http://www.w3.org/2000/svg" width="95" height="109" viewBox="0 0 95 109">
+                    <path class="hexagon-path" d="m47.05 2.208 45.14 26.12v52.25L47.05 106.7 1.91 80.579v-52.25L47.05 2.208Z"/>
+                </svg>
+            </div>
         `;
+
+        // Inject the SVG gradient definition
+        const svgGradient = `
+            <svg width="0" height="0">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#00D1FF">
+                            <animate attributeName="offset" values="0;1;0" dur="4s" repeatCount="indefinite" />
+                        </stop>
+                        <stop offset="50%" stop-color="#E600FF">
+                            <animate attributeName="offset" values="0.5;1.5;0.5" dur="4s" repeatCount="indefinite" />
+                        </stop>
+                        <stop offset="100%" stop-color="#FF003D">
+                            <animate attributeName="offset" values="1;2;1" dur="4s" repeatCount="indefinite" />
+                        </stop>
+                    </linearGradient>
+                </defs>
+            </svg>
+        `;
+        document.body.insertAdjacentHTML('afterbegin', svgGradient);
     }
 
     function formatTemplateName(name) {
@@ -128,11 +152,11 @@
             'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
             'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
         ];
-    
+
         const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
-    
+
         let loadedCount = 0;
-    
+
         sheetUrls.forEach((url, index) => {
             fetch(url)
                 .then(response => response.text())
@@ -165,7 +189,7 @@
                 });
         });
     }
-    
+
     function createDocItem(link, title, isExternalLink = false) {
         const docItem = document.createElement('div');
         docItem.classList.add('doc-item');
@@ -190,14 +214,14 @@
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1927723336&single=true&output=csv';
         const templateMeta = document.querySelector('meta[squarehero-template]');
         const templateName = templateMeta ? templateMeta.getAttribute('squarehero-template') : '';
-    
+
         fetch(sheetUrl)
             .then(response => response.text())
             .then(data => {
                 Papa.parse(data, {
                     complete: function (results) {
                         const rows = results.data.slice(1);
-                        
+
                         // Handle plugins
                         const pluginMetas = Array.from(document.querySelectorAll('meta[squarehero-plugin]'));
                         pluginMetas.forEach(meta => {
@@ -209,7 +233,7 @@
                                 addFeature(pluginName, displayName, status, helpDocUrl || '', 'plugin');
                             }
                         });
-    
+
                         // Handle customizations
                         const customizationMetas = Array.from(document.querySelectorAll('meta[squarehero-customization]'));
                         customizationMetas.forEach(meta => {
@@ -223,7 +247,7 @@
                                 addFeature(customizationName, displayName, status, helpDocUrl || '', 'customization', darkMode);
                             }
                         });
-    
+
                         setupFeatureLinks();
                         hideLoadingSymbol();
                     }
@@ -242,20 +266,20 @@
             featureItem.classList.add('plugin-status');
             const featureHeader = document.createElement('div');
             featureHeader.classList.add('plugin-header');
-    
+
             const icon = document.createElement('img');
             icon.src = `https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-plugin-icon.svg`;
             icon.classList.add('plugin-icon');
-    
+
             const featureInfo = document.createElement('div');
             featureInfo.classList.add('plugin-info');
-    
+
             const featureTitle = document.createElement('span');
             featureTitle.classList.add('plugin-title');
             featureTitle.textContent = displayName;
-    
+
             featureInfo.appendChild(featureTitle);
-    
+
             // Only add the documentation link if a help document URL is provided
             if (helpDocUrl && helpDocUrl.trim() !== '') {
                 const helpLink = document.createElement('a');
@@ -265,18 +289,18 @@
                 helpLink.setAttribute('data-doc-url', helpDocUrl);
                 featureInfo.appendChild(helpLink);
             }
-    
+
             featureHeader.appendChild(icon);
             featureHeader.appendChild(featureInfo);
-    
+
             const statusContainer = document.createElement('div');
             statusContainer.classList.add('status-container');
-    
+
             const statusSpan = document.createElement('span');
             statusSpan.classList.add('status', status === 'true' ? 'enabled' : 'disabled');
             statusSpan.textContent = status === 'true' ? 'Enabled' : 'Disabled';
             statusContainer.appendChild(statusSpan);
-    
+
             // Add DARK MODE indicator if darkMode is true
             if (darkMode === 'true') {
                 const darkModeSpan = document.createElement('span');
@@ -284,7 +308,7 @@
                 darkModeSpan.textContent = 'Dark Mode';
                 statusContainer.appendChild(darkModeSpan);
             }
-    
+
             featureItem.appendChild(featureHeader);
             featureItem.appendChild(statusContainer);
             section.appendChild(featureItem);
@@ -297,7 +321,20 @@
                 event.preventDefault();
                 const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
                 showLoadingSymbol();
-                fetchGoogleDocContent(docUrl);
+
+                if (docUrl.includes('spreadsheets/d/')) {
+                    handleSpreadsheetLink(docUrl);
+                } else {
+                    fetchGoogleDocContent(docUrl)
+                        .then(content => {
+                            content += renderFooter();
+                            displayHelpContent(content, false);
+                        })
+                        .catch(error => console.error('Error fetching Google Doc:', error))
+                        .finally(() => {
+                            hideLoadingSymbol();
+                        });
+                }
             });
         });
     }
@@ -308,7 +345,15 @@
                 event.preventDefault();
                 const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
                 showLoadingSymbol();
-                fetchGoogleDocContent(docUrl);
+                fetchGoogleDocContent(docUrl)
+                    .then(content => {
+                        content += renderFooter();
+                        displayHelpContent(content, false);
+                    })
+                    .catch(error => console.error('Error fetching Google Doc:', error))
+                    .finally(() => {
+                        hideLoadingSymbol();
+                    });
             });
         });
     }
@@ -321,26 +366,27 @@
         return url;
     }
 
-    function fetchGoogleDocContent(docUrl) {
-        fetch(docUrl)
-            .then(response => response.text())
-            .then(data => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(data, 'text/html');
-                let content = doc.querySelector('.doc-content');
-                if (content) {
-                    content = content.innerHTML;
-                } else {
-                    content = data;
-                }
-                content = renderPlaceholders(content);
-                content += renderFooter();
-                displayHelpContent(content);
-            })
-            .catch(error => console.error('Error fetching Google Doc:', error))
-            .finally(() => {
-                hideLoadingSymbol();
-            });
+    function renderPlaceholders(content) {
+        content = content.replace(/{{ HERO ALERT }}(.*?){{ END HERO ALERT }}/gs, (match, p1) => {
+            p1 = renderInnerPlaceholders(p1);
+            return `
+                <div class="alert hero-alert">
+                    <h3>Hero Alert</h3>
+                    <p>${p1.trim()}</p>
+                </div>
+            `;
+        });
+        content = content.replace(/{{ HERO TIP }}(.*?){{ END HERO TIP }}/gs, (match, p1) => {
+            p1 = renderInnerPlaceholders(p1);
+            return `
+                <div class="alert hero-tip">
+                    <h3>Hero Tip</h3>
+                    <p>${p1.trim()}</p>
+                </div>
+            `;
+        });
+        content = renderInnerPlaceholders(content);
+        return content;
     }
 
     function renderPlaceholders(content) {
@@ -373,7 +419,69 @@
         text = text.replace(/{{ GDOC }}\[([^\]]+)\]\(([^)]+)\){{ END GDOC }}/g, (match, linkText, url) => {
             return `<a href="#" class="doc-link" data-doc-url="${url}">${linkText}</a>`;
         });
+        text = text.replace(/{{ CODEBLOCK }}([\s\S]*?){{ END CODEBLOCK }}/g, (match, codeContent) => {
+            // Remove any leading/trailing whitespace
+            codeContent = codeContent.trim();
+
+            // Wrap the content in a hub-code-block div
+            return `<div class="hub-code-block">${codeContent}</div>`;
+        });
         return text;
+    }
+
+    function handleSpreadsheetLink(spreadsheetUrl) {
+        showLoadingSymbol();
+        fetch(spreadsheetUrl)
+            .then(response => response.text())
+            .then(data => {
+                Papa.parse(data, {
+                    complete: function (results) {
+                        const rows = results.data.slice(1); // Skip the header row
+                        let anchorLinks = '<div class="anchor-links">';
+                        let fetchPromises = [];
+                        let contentOrder = [];
+
+                        rows.forEach((row, index) => {
+                            if (row.length >= 2) { // Ensure the row has both title and link
+                                const [title, docUrl] = row;
+                                const anchorId = `doc-${index}`;
+
+                                // Add anchor link
+                                anchorLinks += `<a href="#${anchorId}" class="doc-anchor"><span>${title}</span></a>`;
+
+                                // Fetch content and store promise with index
+                                fetchPromises.push(
+                                    fetchGoogleDocContent(docUrl)
+                                        .then(docContent => {
+                                            return { index, content: `<div id="${anchorId}" class="doc-section">${docContent}</div>` };
+                                        })
+                                );
+                            }
+                        });
+
+                        anchorLinks += '</div>';
+
+                        Promise.all(fetchPromises)
+                            .then(results => {
+                                // Sort results based on original index to maintain order
+                                results.sort((a, b) => a.index - b.index);
+
+                                // Join all content in correct order
+                                const content = results.map(result => result.content).join('');
+
+                                displayHelpContent(anchorLinks + '<div class="docs-content">' + content + '</div>', true);
+                            })
+                            .catch(error => console.error('Error fetching multiple docs:', error))
+                            .finally(() => {
+                                hideLoadingSymbol();
+                            });
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching Google Spreadsheet:', error);
+                hideLoadingSymbol();
+            });
     }
 
     function renderFooter() {
@@ -383,18 +491,58 @@
         `;
     }
 
-    function displayHelpContent(content) {
+    function fetchGoogleDocContent(docUrl) {
+        return fetch(docUrl)
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                let content = doc.querySelector('.doc-content');
+                if (content) {
+                    content = content.innerHTML;
+                } else {
+                    content = data;
+                }
+                content = renderPlaceholders(content);
+
+                // Create a temporary div to parse the content
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+
+                // Find all links in the content
+                const links = tempDiv.querySelectorAll('a');
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                        // External link: add target and rel attributes
+                        link.setAttribute('target', '_blank');
+                        link.setAttribute('rel', 'noopener noreferrer');
+                    }
+                });
+
+                // Return the modified content
+                return tempDiv.innerHTML;
+            });
+    }
+
+    function displayHelpContent(content, isMultipleDocs = false) {
         const mainContent = document.querySelector('.main-content');
         mainContent.style.display = 'none';
         const helpContent = document.getElementById('helpContent');
+
+        const wrapperClass = isMultipleDocs ? 'content-wrapper multiple-docs' : 'content-wrapper single-doc';
+
         helpContent.innerHTML = `
             <div class="doc-content">
                 <div class="breadcrumb">
                     <a href="#" id="backToHub">Return to SquareHero Hub</a>
                 </div>
-                ${content}
+                <div class="${wrapperClass}">
+                    ${content}
+                </div>
             </div>
         `;
+
         document.getElementById('backToHub').addEventListener('click', function (event) {
             event.preventDefault();
             helpContent.classList.remove('visible');
@@ -403,28 +551,150 @@
                 mainContent.style.display = 'flex';
             }, 300);
         });
+
         setTimeout(() => {
             helpContent.querySelector('.doc-content').classList.add('visible');
+            if (isMultipleDocs) {
+                setupSmoothScrolling();
+                setupScrollProgress();
+                // Set the first anchor as active on page load
+                const firstAnchor = document.querySelector('.anchor-links a.doc-anchor');
+                if (firstAnchor) {
+                    firstAnchor.classList.add('active');
+                    firstAnchor.style.setProperty('--progress', '0%');
+                }
+            }
         }, 50);
 
-        document.querySelectorAll('.doc-link').forEach(link => {
-            link.addEventListener('click', function (event) {
-                event.preventDefault();
-                const docUrl = cleanGoogleDocUrl(this.getAttribute('data-doc-url'));
-                showLoadingSymbol();
-                fetchGoogleDocContent(docUrl);
+        setupDocLinks(); // Re-setup doc links for any new content
+        if (isMultipleDocs) {
+            setupSmoothScrolling();
+            setupScrollProgress();
+        }
+    }
+
+
+    function setupSmoothScrolling() {
+        document.querySelectorAll('.anchor-links a.doc-anchor').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                targetElement.scrollIntoView({ behavior: 'smooth' });
             });
         });
     }
 
+
+    function setupScrollProgress() {
+        const docSections = document.querySelectorAll('.doc-section');
+        const anchorLinks = document.querySelectorAll('.anchor-links a.doc-anchor');
+        let activeIndex = 0;
+
+        function updateProgress() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            docSections.forEach((section, index) => {
+                const rect = section.getBoundingClientRect();
+                const sectionTop = rect.top + scrollTop;
+                const sectionHeight = rect.height;
+
+                let progress = 0;
+                if (rect.top <= windowHeight / 2 && rect.bottom >= windowHeight / 2) {
+                    progress = ((windowHeight / 2 - rect.top) / sectionHeight) * 100;
+                    progress = Math.max(0, Math.min(100, progress));
+                    activeIndex = index;
+                    anchorLinks[index].classList.add('active');
+                } else if (rect.top > windowHeight / 2) {
+                    progress = 0;
+                    anchorLinks[index].classList.remove('active');
+                } else {
+                    progress = 100;
+                    anchorLinks[index].classList.remove('active');
+                }
+
+                anchorLinks[index].style.setProperty('--progress', `${progress}%`);
+            });
+
+            // Handle the case when scrolled to the very bottom of the page
+            if (scrollTop + windowHeight >= documentHeight - 10) {
+                const lastIndex = docSections.length - 1;
+                anchorLinks[lastIndex].classList.add('active');
+                anchorLinks[lastIndex].style.setProperty('--progress', '100%');
+            }
+        }
+
+        function scrollToSection(index) {
+            activeIndex = index;
+            docSections[index].scrollIntoView({ behavior: 'smooth' });
+
+            // Reset progress for all links
+            anchorLinks.forEach(link => {
+                link.style.setProperty('--progress', '0%');
+                link.classList.remove('active');
+            });
+
+            // Set the clicked link as active
+            anchorLinks[index].classList.add('active');
+
+            // Update progress after a short delay to ensure scroll has completed
+            setTimeout(updateProgress, 100);
+        }
+
+        // Initialize progress to 0 for all anchor links
+        anchorLinks.forEach(link => {
+            link.style.setProperty('--progress', '0%');
+        });
+
+        window.addEventListener('scroll', updateProgress);
+        window.addEventListener('resize', updateProgress);
+
+        // Add click event listeners to anchor links
+        anchorLinks.forEach((link, index) => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                scrollToSection(index);
+            });
+        });
+
+        // Initial update
+        updateProgress();
+    }
+
+
     function showLoadingSymbol() {
         const loadingSymbol = document.getElementById('loadingSymbol');
+        const mainContent = document.querySelector('.main-content');
+
+        // Ensure the loading symbol is within the main content
+        if (loadingSymbol.parentNode !== mainContent) {
+            mainContent.appendChild(loadingSymbol);
+        }
+
+        // Show loading symbol
         loadingSymbol.classList.add('active');
+
+        // Hide main content children except loading symbol
+        Array.from(mainContent.children).forEach(child => {
+            if (child !== loadingSymbol) {
+                child.style.visibility = 'hidden';
+            }
+        });
     }
 
     function hideLoadingSymbol() {
         const loadingSymbol = document.getElementById('loadingSymbol');
+        const mainContent = document.querySelector('.main-content');
+
+        // Hide loading symbol
         loadingSymbol.classList.remove('active');
+
+        // Show main content children
+        Array.from(mainContent.children).forEach(child => {
+            child.style.visibility = 'visible';
+        });
     }
 
     // Initialize on DOM content loaded
@@ -434,3 +704,43 @@
         initSquareHeroHub();
     }
 })();
+
+
+
+
+
+
+
+function fetchGoogleDocContent(docUrl) {
+    return fetch(docUrl)
+        .then(response => response.text())
+        .then(data => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data, 'text/html');
+            let content = doc.querySelector('.doc-content');
+            if (content) {
+                content = content.innerHTML;
+            } else {
+                content = data;
+            }
+            content = renderPlaceholders(content);
+
+            // Create a temporary div to parse the content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+
+            // Find all links in the content
+            const links = tempDiv.querySelectorAll('a');
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                    // External link: add target and rel attributes
+                    link.setAttribute('target', '_blank');
+                    link.setAttribute('rel', 'noopener noreferrer');
+                }
+            });
+
+            // Return the modified content
+            return tempDiv.innerHTML;
+        });
+}
