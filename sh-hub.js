@@ -35,7 +35,7 @@
             showLoadingSymbol();
             loadAccordionContent();
             loadFeatureContent();
-            
+
             // Add a global click listener to handle dynamically added elements
             document.addEventListener('click', handleGlobalClick);
         } else {
@@ -85,7 +85,7 @@
     function injectHTML(container) {
         const templateMeta = document.querySelector('meta[squarehero-template]');
         const templateName = templateMeta ? formatTemplateName(templateMeta.getAttribute('squarehero-template')) : '';
-    
+
         let headerContent = `
             <div class="sh-hub--logo">
                 <img src="https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/SquareHero_Final-Logo-Reversed.png">
@@ -96,7 +96,7 @@
             </div>
             <button>SquareHero Support</button>
         `;
-    
+
         container.innerHTML = `
             <header>
                 ${headerContent}
@@ -156,7 +156,7 @@
                 </svg>
             </div>
         `;
-    
+
         // Inject the SVG gradient definition
         const svgGradient = `
             <svg width="0" height="0">
@@ -279,13 +279,22 @@
 
                         // Handle plugins
                         const pluginMetas = Array.from(document.querySelectorAll('meta[squarehero-plugin]'));
+                        console.log(`Found ${pluginMetas.length} plugin meta tags`);
                         pluginMetas.forEach(meta => {
                             const pluginName = meta.getAttribute('squarehero-plugin');
-                            const matchingRow = rows.find(row => row[0] === pluginName && row.length >= 3 && row[2].trim() !== '');
+                            console.log(`Processing plugin: ${pluginName}`);
+                            const matchingRow = rows.find(row => row[0] === pluginName && row.length >= 2);
                             if (matchingRow) {
+                                console.log(`Matching row found for plugin ${pluginName}:`, matchingRow);
                                 const [_, displayName, helpDocUrl] = matchingRow;
                                 const status = meta.getAttribute('enabled');
                                 addFeature(pluginName, displayName, status, helpDocUrl, 'plugin');
+                            } else {
+                                console.log(`No matching row found for plugin ${pluginName}`);
+                                // Add the feature even if there's no matching row in the spreadsheet
+                                const displayName = pluginName; // Use the plugin name as display name if not found in spreadsheet
+                                const status = meta.getAttribute('enabled');
+                                addFeature(pluginName, displayName, status, '', 'plugin');
                             }
                         });
 
@@ -315,6 +324,8 @@
     }
 
     function addFeature(name, displayName, status, helpDocUrl, type, darkMode) {
+        console.log(`Adding feature: ${name}, Display Name: ${displayName}, Status: ${status}, Help URL: ${helpDocUrl}, Type: ${type}, Dark Mode: ${darkMode}`);
+
         const section = document.getElementById('pluginSection');
         if (section) {
             const featureItem = document.createElement('div');
@@ -336,12 +347,15 @@
             featureInfo.appendChild(featureTitle);
 
             if (helpDocUrl && helpDocUrl.trim() !== '') {
+                console.log(`Adding help link for ${name}`);
                 const helpLink = document.createElement('a');
                 helpLink.href = '#';
                 helpLink.textContent = 'View Documentation';
                 helpLink.classList.add('doc-link');
                 helpLink.setAttribute('data-doc-url', helpDocUrl);
                 featureInfo.appendChild(helpLink);
+            } else {
+                console.log(`No help link added for ${name}`);
             }
 
             featureHeader.appendChild(icon);
@@ -365,6 +379,9 @@
             featureItem.appendChild(featureHeader);
             featureItem.appendChild(statusContainer);
             section.appendChild(featureItem);
+            console.log(`Feature ${name} added to the DOM`);
+        } else {
+            console.error(`Plugin section not found in the DOM for feature ${name}`);
         }
     }
 
@@ -467,7 +484,7 @@
                                 hideLoadingSymbol();
                             });
                     },
-                    error: function(error) {
+                    error: function (error) {
                         logError('Error parsing spreadsheet:', error);
                         displayErrorMessage('Failed to parse spreadsheet content. Please try again later.');
                         hideLoadingSymbol();
@@ -494,7 +511,7 @@
                     content = data;
                 }
                 content = renderPlaceholders(content);
-                
+
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = content;
 
@@ -656,26 +673,26 @@
     function showLoadingSymbol() {
         const loadingSymbol = document.getElementById('loadingSymbol');
         const mainContent = document.querySelector('.main-content');
-    
+
         if (loadingSymbol.parentNode !== mainContent) {
             mainContent.appendChild(loadingSymbol);
         }
-    
+
         loadingSymbol.classList.add('active');
-    
+
         Array.from(mainContent.children).forEach(child => {
             if (child !== loadingSymbol) {
                 child.style.visibility = 'hidden';
             }
         });
     }
-    
+
     function hideLoadingSymbol() {
         const loadingSymbol = document.getElementById('loadingSymbol');
         const mainContent = document.querySelector('.main-content');
-    
+
         loadingSymbol.classList.remove('active');
-    
+
         Array.from(mainContent.children).forEach(child => {
             child.style.visibility = 'visible';
         });
