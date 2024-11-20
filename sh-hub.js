@@ -540,23 +540,83 @@ function loadAccordionContent() {
             });
     }
 
+    function cleanGoogleRedirectUrl(url) {
+        if (url && url.includes('https://www.google.com/url?q=')) {
+            try {
+                const actualUrl = decodeURIComponent(url.split('q=')[1].split('&')[0]);
+                return actualUrl;
+            } catch (error) {
+                console.error('[SquareHero Error] Failed to clean Google redirect URL:', error);
+                return url;
+            }
+        }
+        return url;
+    }
+    
+    function cleanContentLinks(content) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        
+        const links = tempDiv.querySelectorAll('a');
+        links.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href) {
+                const cleanedHref = cleanGoogleRedirectUrl(href);
+                link.setAttribute('href', cleanedHref);
+            }
+        });
+        
+        return tempDiv.innerHTML;
+    }
+
     function fetchGoogleDocContent(docUrl) {
         return fetch(docUrl)
             .then(response => response.text())
             .then(data => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(data, 'text/html');
+                
+                // Find and process style tags
+                const styleTags = doc.querySelectorAll('style');
+                const boldClasses = new Set();
+                
+                styleTags.forEach(styleTag => {
+                    const cssText = styleTag.textContent;
+                    // Find all class definitions containing font-weight: 700
+                    const matches = cssText.match(/\.c\d+[^}]*font-weight:\s*700[^}]*}/g);
+                    if (matches) {
+                        matches.forEach(match => {
+                            // Extract the class name (e.g., 'c4' from '.c4{...')
+                            const className = match.match(/\.c\d+/)[0].substring(1);
+                            boldClasses.add(className);
+                        });
+                    }
+                });
+    
                 let content = doc.querySelector('.doc-content');
-                if (content) {
-                    content = content.innerHTML;
-                } else {
-                    content = data;
+                if (!content) {
+                    content = doc;
                 }
+    
+                // Add custom bold class to elements with bold classes
+                boldClasses.forEach(boldClass => {
+                    const boldElements = content.querySelectorAll(`.${boldClass}`);
+                    boldElements.forEach(element => {
+                        element.classList.add('sh-bold');
+                    });
+                });
+                
+                // Convert to string and clean up
+                content = content.innerHTML || content.body.innerHTML;
+                
+                // Clean Google redirect URLs
+                content = cleanContentLinks(content);
                 content = renderPlaceholders(content);
-
+    
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = content;
-
+    
+                // Process links
                 const links = tempDiv.querySelectorAll('a');
                 links.forEach(link => {
                     const href = link.getAttribute('href');
@@ -565,10 +625,34 @@ function loadAccordionContent() {
                         link.setAttribute('rel', 'noopener noreferrer');
                     }
                 });
-
+    
                 return tempDiv.innerHTML;
             });
     }
+
+    //  copyToClipboard function
+if (!window.copyToClipboard) {
+    window.copyToClipboard = function(text, element) {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                const feedback = element.querySelector('.copy-feedback');
+                feedback.classList.add('show');
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Failed to copy:', err);
+                const feedback = element.querySelector('.copy-feedback');
+                feedback.textContent = 'Failed to copy';
+                feedback.classList.add('show');
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, 2000);
+            });
+    };
+}
+
 
     function renderPlaceholders(content) {
         content = content.replace(/{{ HERO ALERT }}(.*?){{ END HERO ALERT }}/gs, (match, p1) => {
@@ -589,8 +673,90 @@ function loadAccordionContent() {
                 </div>
             `;
         });
-        content = renderInnerPlaceholders(content);
+        content = content.replace(/{{ UPDATED }}(.*?){{ END UPDATED }}/gs, (match, p1) => {
+            p1 = renderInnerPlaceholders(p1);
+            return `
+                <div class="last-updated">
+                    <p>${p1.trim()}</p>
+                </div>
+            `;
+        });
+    
+        // Color scheme handler
+        content = content.replace(/{{ COLOR SCHEME }}([\s\S]*?){{ END COLOR SCHEME }}/gs, (match, p1) => {
+            // Clean up the input
+            const cleanInput = p1
+                .replace(/<br>/g, '\n')
+                .replace(/<[^>]+>/g, '')
+                .replace(/\s*class="[^"]*"\s*/g, '')
+                .replace(/​/g, '')
+                .replace(/\r/g, '')
+                .trim();
+            
+            // Split into lines
+            const lines = cleanInput.split('\n').map(line => line.trim()).filter(line => line);
+            
+            // First line is title if it doesn't contain a comma
+            let title = '';
+            let colorStart = 0;
+            
+            if (!lines[0].includes(',')) {
+                title = lines[0];
+                colorStart = 1;
+            }
+            
+            // Parse remaining lines as colors
+            const colors = lines.slice(colorStart)
+                .filter(line => line && line.includes(','))
+                .map(line => {
+                    const [name, hex] = line.split(',', 2);
+                    const cleanHex = hex.trim().replace(/[^#A-Fa-f0-9]/g, '');
+                    const formattedHex = cleanHex.startsWith('#') ? cleanHex : '#' + cleanHex;
+                    
+                    return {
+                        name: name.trim(),
+                        hex: formattedHex
+                    };
+                });
+    
+            return `
+                <div class="color-scheme-container">
+                    ${title ? `<div class="color-scheme-title">${title}</div>` : ''}
+                    ${colors.map(color => `
+                        <div class="color-block" 
+                             onclick="window.copyToClipboard('${color.hex}', this)"
+                             style="
+                                background-color: ${color.hex};
+                                color: ${isLightColor(color.hex) ? '#182C4F' : '#FFFFFF'};
+                                ${(color.hex.toUpperCase() === '#FFFFFF' || color.hex.toUpperCase() === '#F5F5F5') ? 'border: 1px solid #182C4F;' : ''}
+                             "
+                        >
+                            ${color.name} ${color.hex}
+                            <div class="copy-feedback">Copied!</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        });
+    
         return content;
+    }
+    
+    // Helper function to determine if a color is light
+    function isLightColor(hex) {
+        // Remove the hash if present
+        hex = hex.replace('#', '');
+        
+        // Convert hex to RGB
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Calculate relative luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Return true if the color is light (luminance > 0.5)
+        return luminance > 0.5;
     }
 
     function renderInnerPlaceholders(text) {
