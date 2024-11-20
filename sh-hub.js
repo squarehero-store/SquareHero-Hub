@@ -43,6 +43,93 @@
         }
     }
 
+    // Define the template-to-CSV mapping
+const templateCSVMapping = {
+    'café-cozy': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
+    'cornerstone-builders': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=863655516&single=true&output=csv',
+    'luxury-homes': 'https://docs.google.com/spreadsheets/d/e/YOUR_LUXURY_HOMES_SHEET_ID/pub?gid=SPECIFIC_GID&single=true&output=csv'
+    // Add more templates as needed
+};
+
+function loadAccordionContent() {
+    const templateMeta = document.querySelector('meta[squarehero-template]');
+    const templateName = templateMeta ? templateMeta.getAttribute('squarehero-template') : '';
+    
+    // Get template-specific CSV if it exists
+    const templateSpecificCSV = templateName ? templateCSVMapping[templateName] : null;
+    
+    // Hide or show template accordion based on whether we have template-specific content
+    const templateAccordion = document.querySelector('.accordion:nth-child(2)');
+    if (templateAccordion) {
+        templateAccordion.style.display = templateSpecificCSV ? 'block' : 'none';
+    }
+
+    // Load general content and Squarespace help content
+    const urls = [
+        'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv',
+        'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
+    ];
+
+    // Add template-specific content URL if it exists
+    if (templateSpecificCSV) {
+        urls.splice(1, 0, templateSpecificCSV);
+    }
+
+    const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
+    let loadedCount = 0;
+    const totalToLoad = urls.length;
+
+    urls.forEach((url, index) => {
+        fetch(url)
+            .then(response => response.text())
+            .then(data => {
+                Papa.parse(data, {
+                    complete: function (results) {
+                        const rows = results.data.slice(1);
+                        // Adjust index for accordion ID if template content isn't present
+                        const accordionIndex = !templateSpecificCSV && index === 1 ? 2 : index;
+                        const accordionContent = document.getElementById(accordionIds[accordionIndex]);
+                        
+                        if (accordionContent) {
+                            accordionContent.innerHTML = '';
+                            
+                            rows.forEach(row => {
+                                if (row.length >= 2 && row[1].trim() !== '') {
+                                    const [title, link] = row;
+                                    const isExternalLink = accordionIds[accordionIndex] === 'squarespaceAccordionContent';
+                                    const docItem = createDocItem(link, title, isExternalLink);
+                                    accordionContent.appendChild(docItem);
+                                }
+                            });
+                        }
+                        
+                        loadedCount++;
+                        if (loadedCount === totalToLoad) {
+                            setupDocLinks();
+                            hideLoadingSymbol();
+                        }
+                    },
+                    error: function(error) {
+                        logError(`Error parsing CSV:`, error);
+                        loadedCount++;
+                        if (loadedCount === totalToLoad) {
+                            setupDocLinks();
+                            hideLoadingSymbol();
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                logError(`Error fetching CSV:`, error);
+                loadedCount++;
+                if (loadedCount === totalToLoad) {
+                    setupDocLinks();
+                    hideLoadingSymbol();
+                }
+            });
+    });
+}
+
     function handleGlobalClick(event) {
         const target = event.target.closest('.doc-link');
         if (target) {
@@ -199,51 +286,6 @@
         });
     }
 
-    function loadAccordionContent() {
-        const sheetUrls = [
-            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv',
-            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
-            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
-        ];
-
-        const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
-
-        let loadedCount = 0;
-
-        sheetUrls.forEach((url, index) => {
-            fetch(url)
-                .then(response => response.text())
-                .then(data => {
-                    Papa.parse(data, {
-                        complete: function (results) {
-                            const rows = results.data.slice(1);
-                            const accordionContent = document.getElementById(accordionIds[index]);
-                            rows.forEach(row => {
-                                if (row.length >= 2 && row[1].trim() !== '') {
-                                    const [title, link] = row;
-                                    const isExternalLink = accordionIds[index] === 'squarespaceAccordionContent';
-                                    const docItem = createDocItem(link, title, isExternalLink);
-                                    accordionContent.appendChild(docItem);
-                                }
-                            });
-                            loadedCount++;
-                            if (loadedCount === sheetUrls.length) {
-                                setupDocLinks();
-                                hideLoadingSymbol();
-                            }
-                        }
-                    });
-                })
-                .catch(error => {
-                    logError(`Error fetching Google Sheet for accordion ${index + 1}:`, error);
-                    loadedCount++;
-                    if (loadedCount === sheetUrls.length) {
-                        setupDocLinks();
-                        hideLoadingSymbol();
-                    }
-                });
-        });
-    }
 
     function createDocItem(link, title, isExternalLink = false) {
         const docItem = document.createElement('div');
