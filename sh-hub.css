@@ -41,7 +41,7 @@
   display: none;
 }
 .squarehero-hub .content-wrapper {
-  padding: 2vw !important;
+  padding: 2vw 0 !important;
   z-index: 2;
   position: relative;
 }
@@ -80,6 +80,20 @@
   height: 100%;
   z-index: -1;
 }
+.squarehero-hub #SquareHeroHub header:after {
+  content: '';
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  top: 0;
+  right: 0;
+  z-index: -2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 224 140'%3E%3Cg filter='url(%23a)' opacity='.4'%3E%3Ccircle cx='271' cy='83' r='177' fill='url(%23b)'/%3E%3C/g%3E%3Cdefs%3E%3ClinearGradient id='b' x1='271' x2='271' y1='-94' y2='260' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2300D1FF'/%3E%3Cstop offset='.45' stop-color='%23A603F3'/%3E%3Cstop offset='.975' stop-color='%23FF00E6'/%3E%3C/linearGradient%3E%3Cfilter id='a' width='542' height='542' x='0' y='-188' color-interpolation-filters='sRGB' filterUnits='userSpaceOnUse'%3E%3CfeFlood flood-opacity='0' result='BackgroundImageFix'/%3E%3CfeBlend in='SourceGraphic' in2='BackgroundImageFix' result='shape'/%3E%3CfeGaussianBlur result='effect1_foregroundBlur_12_19' stdDeviation='47'/%3E%3C/filter%3E%3C/defs%3E%3C/svg%3E");
+  background-size: cover;
+  background-position: right;
+  background-repeat: no-repeat;
+  transition: opacity 0.3s ease;
+}
 .squarehero-hub #SquareHeroHub header .sh-hub--logo img {
   width: 145px;
 }
@@ -96,6 +110,7 @@
   line-height: 130%;
   color: white;
   margin-top: 5px;
+  margin: 0;
 }
 .squarehero-hub #SquareHeroHub header h1,
 .squarehero-hub #SquareHeroHub header h2 {
@@ -104,7 +119,7 @@
 .squarehero-hub #SquareHeroHub header h2 {
   font-weight: normal;
 }
-.squarehero-hub #SquareHeroHub header button {
+.squarehero-hub #SquareHeroHub header .support-button {
   background: none !important;
   z-index: 1;
   display: inline-block;
@@ -124,8 +139,9 @@
   letter-spacing: 1.12px;
   text-transform: uppercase;
   cursor: pointer;
+  text-decoration: none !important;
 }
-.squarehero-hub #SquareHeroHub header button:before {
+.squarehero-hub #SquareHeroHub header .support-button:before {
   content: "";
   position: absolute;
   inset: 0;
@@ -138,10 +154,10 @@
   background-size: 200% 100%;
   transition: background-position 0.5s ease;
 }
-.squarehero-hub #SquareHeroHub header button:hover {
+.squarehero-hub #SquareHeroHub header .support-button:hover {
   opacity: 1 !important;
 }
-.squarehero-hub #SquareHeroHub header button:hover:before {
+.squarehero-hub #SquareHeroHub header .support-button:hover:before {
   background-position: 150% 0;
 }
 .squarehero-hub #SquareHeroHub .main-content {
@@ -162,21 +178,42 @@
   height: 250px;
 }
 .squarehero-hub #SquareHeroHub .main-content p,
-.squarehero-hub #SquareHeroHub .main-content a {
+.squarehero-hub #SquareHeroHub .main-content a,
+.squarehero-hub #SquareHeroHub .main-content a span {
   font-size: 1rem;
   line-height: 130%;
+  color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .main-content p:visited,
+.squarehero-hub #SquareHeroHub .main-content a:visited,
+.squarehero-hub #SquareHeroHub .main-content a span:visited {
+  color: #011e45;
 }
 .squarehero-hub #SquareHeroHub .main-content .doc-link {
   text-decoration: underline;
   color: #011e45;
   text-align: left;
 }
+.squarehero-hub #SquareHeroHub .main-content .doc-link.external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.squarehero-hub #SquareHeroHub .main-content .doc-link.external-link:hover svg {
+  transform: translate(1px, -1px);
+  opacity: 1;
+}
+.squarehero-hub #SquareHeroHub .main-content .doc-link.external-link svg {
+  margin-left: 2px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
 .squarehero-hub #SquareHeroHub .main-content a {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 .squarehero-hub #SquareHeroHub .left-column {
-  flex: 0 0 55%;
+  flex: 0 0 50%;
   display: flex;
   flex-wrap: wrap;
   gap: 30px;
@@ -250,7 +287,7 @@
   transform: translateY(-50%) rotate(180deg);
 }
 .squarehero-hub #SquareHeroHub .right-column {
-  flex: 1 0 35%;
+  flex: 1 0 40%;
   z-index: 1;
 }
 .squarehero-hub #SquareHeroHub .section {
@@ -344,6 +381,25 @@
   color: #011e45;
   line-height: 140%;
 }
+.squarehero-hub #SquareHeroHub .doc-content a,
+.squarehero-hub #SquareHeroHub .doc-content a span {
+  color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .doc-content a:visited,
+.squarehero-hub #SquareHeroHub .doc-content a span:visited {
+  color: #011e45;
+}
+.squarehero-hub #SquareHeroHub .doc-content a:hover svg,
+.squarehero-hub #SquareHeroHub .doc-content a span:hover svg {
+  transform: translate(1px, -1px);
+  opacity: 1;
+}
+.squarehero-hub #SquareHeroHub .doc-content a svg,
+.squarehero-hub #SquareHeroHub .doc-content a span svg {
+  margin-left: 2px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
 .squarehero-hub #SquareHeroHub .doc-content p span {
   font-size: 1rem;
   line-height: 140%;
@@ -399,10 +455,11 @@
   content: '';
   left: 0;
   top: 0;
-  width: 5px;
+  width: 7px;
   height: 100%;
   background: linear-gradient(0deg, #00D1FF 20.4%, #FF00E6 55.91%, #FF003D 80.09%);
   position: absolute;
+  border-radius: 3px 0px 0px 3px;
 }
 .squarehero-hub #SquareHeroHub .doc-content .alert h3 {
   margin-bottom: 10px;
@@ -432,6 +489,7 @@
   cursor: pointer;
   position: relative;
   transition: transform 0.2s;
+  border: solid 1px #666666;
 }
 .squarehero-hub #SquareHeroHub .doc-content .color-scheme-container .color-block:hover {
   transform: scale(1.05);
@@ -457,18 +515,93 @@
   font-size: 0.9rem;
   opacity: 0.5;
 }
-.squarehero-hub #SquareHeroHub .doc-content .hub-code-block {
-  font-family: 'Courier New', Courier, monospace;
-  background-color: #f0f4f8;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 15px;
-  margin: 10px 0;
-  overflow-x: auto;
-  line-height: 1.5;
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container {
+  position: relative;
+  margin: 1.5rem 0;
+  background: transparent;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container pre.code-block {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding: 1.25rem;
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
   font-size: 14px;
-  font-weight: 600;
-  color: #011e45;
+  line-height: 1.5;
+  color: #1a202c;
+  background-color: #f3fcfe;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container pre.code-block::-webkit-scrollbar {
+  height: 8px;
+  background: #f8f9fa;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container pre.code-block::-webkit-scrollbar-thumb {
+  background: #cfd4da;
+  border-radius: 4px;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container pre.code-block .comment {
+  color: #6B7280;
+  font-style: italic;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container pre.code-block .tag {
+  color: #2563EB;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container pre.code-block .attr {
+  color: #9D174D;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container pre.code-block .attr-value {
+  color: #059669;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container .copy-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 2;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container .copy-button:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container .copy-button:active {
+  background: #edf2f7;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container .copy-button .copy-feedback {
+  position: absolute;
+  bottom: -2rem;
+  right: 0;
+  padding: 0.25rem 0.5rem;
+  background: #1a202c;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transform: translateY(-0.5rem);
+  transition: all 0.2s ease;
+  z-index: 3;
+}
+.squarehero-hub #SquareHeroHub .doc-content .code-block-container .copy-button .copy-feedback.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 .squarehero-hub #SquareHeroHub .doc-content hr {
   margin: 50px 0;

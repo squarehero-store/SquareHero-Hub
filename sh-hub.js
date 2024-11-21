@@ -43,132 +43,161 @@
         }
     }
 
-    // Define the template-to-CSV mapping
-const templateCSVMapping = {
-    'café-cozy': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
-    'cornerstone-builders': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=863655516&single=true&output=csv',
-    'luxury-homes': 'https://docs.google.com/spreadsheets/d/e/YOUR_LUXURY_HOMES_SHEET_ID/pub?gid=SPECIFIC_GID&single=true&output=csv'
-    // Add more templates as needed
-};
-
-function loadAccordionContent() {
-    const templateMeta = document.querySelector('meta[squarehero-template]');
-    const templateName = templateMeta ? templateMeta.getAttribute('squarehero-template') : '';
-    
-    // Get template-specific CSV if it exists
-    const templateSpecificCSV = templateName ? templateCSVMapping[templateName] : null;
-    
-    // Hide or show template accordion based on whether we have template-specific content
-    const templateAccordion = document.querySelector('.accordion:nth-child(2)');
-    if (templateAccordion) {
-        templateAccordion.style.display = templateSpecificCSV ? 'block' : 'none';
-    }
-
-    // Load general content and Squarespace help content
-    const urls = [
-        'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv',
-        'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
-    ];
-
-    // Add template-specific content URL if it exists
-    if (templateSpecificCSV) {
-        urls.splice(1, 0, templateSpecificCSV);
-    }
-
-    const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
-    let loadedCount = 0;
-    const totalToLoad = urls.length;
-
-    urls.forEach((url, index) => {
-        fetch(url)
-            .then(response => response.text())
-            .then(data => {
-                Papa.parse(data, {
-                    complete: function (results) {
-                        const rows = results.data.slice(1);
-                        // Adjust index for accordion ID if template content isn't present
-                        const accordionIndex = !templateSpecificCSV && index === 1 ? 2 : index;
-                        const accordionContent = document.getElementById(accordionIds[accordionIndex]);
-                        
-                        if (accordionContent) {
-                            accordionContent.innerHTML = '';
-                            
-                            rows.forEach(row => {
-                                if (row.length >= 2 && row[1].trim() !== '') {
-                                    const [title, link] = row;
-                                    const isExternalLink = accordionIds[accordionIndex] === 'squarespaceAccordionContent';
-                                    const docItem = createDocItem(link, title, isExternalLink);
-                                    accordionContent.appendChild(docItem);
-                                }
-                            });
-                        }
-                        
-                        loadedCount++;
-                        if (loadedCount === totalToLoad) {
-                            setupDocLinks();
-                            hideLoadingSymbol();
-                        }
-                    },
-                    error: function(error) {
-                        logError(`Error parsing CSV:`, error);
-                        loadedCount++;
-                        if (loadedCount === totalToLoad) {
-                            setupDocLinks();
-                            hideLoadingSymbol();
-                        }
-                    }
-                });
-            })
-            .catch(error => {
-                logError(`Error fetching CSV:`, error);
-                loadedCount++;
-                if (loadedCount === totalToLoad) {
-                    setupDocLinks();
-                    hideLoadingSymbol();
-                }
-            });
-    });
-}
-
     function handleGlobalClick(event) {
         const target = event.target.closest('.doc-link');
-        if (target) {
+        if (target && !target.hasAttribute('target')) {  // Only handle internal links
             debug('Doc link clicked via global handler', target.getAttribute('data-doc-url'));
             event.preventDefault();
             handleDocLinkClick(target);
         }
     }
 
-    function handleDocLinkClick(link) {
-        try {
-            const docUrl = cleanGoogleDocUrl(link.getAttribute('data-doc-url'));
-            showLoadingSymbol();
-
-            if (docUrl.includes('spreadsheets/d/')) {
-                debug('Detected spreadsheet link', docUrl);
-                handleSpreadsheetLink(docUrl);
-            } else {
-                debug('Detected regular doc link', docUrl);
-                fetchGoogleDocContent(docUrl)
-                    .then(content => {
-                        content += renderFooter();
-                        displayHelpContent(content, false);
-                    })
-                    .catch(error => {
-                        logError('Error fetching Google Doc:', error);
-                        displayErrorMessage('Failed to load document. Please try again later.');
-                    })
-                    .finally(() => {
-                        hideLoadingSymbol();
-                    });
-            }
-        } catch (error) {
-            logError('Error in doc link click handler:', error);
-            displayErrorMessage('An unexpected error occurred. Please try again later.');
-            hideLoadingSymbol();
-        }
+    // Helper function to decode HTML entities
+    function decodeHTML(html) {
+        const txt = document.createElement('textarea');
+        txt.innerHTML = html;
+        return txt.value;
     }
 
+    // Helper function to escape content for HTML attributes
+    function escapeForHTML(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+    // Define the template-to-CSV mapping
+    const templateCSVMapping = {
+        'café-cozy': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=2045514680&single=true&output=csv',
+        'cornerstone-builders': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=863655516&single=true&output=csv'
+    };
+
+    function loadAccordionContent() {
+        const templateMeta = document.querySelector('meta[squarehero-template]');
+        const templateName = templateMeta ? templateMeta.getAttribute('squarehero-template') : '';
+
+        // Get template-specific CSV if it exists
+        const templateSpecificCSV = templateName ? templateCSVMapping[templateName] : null;
+
+        // Hide or show template accordion based on whether we have template-specific content
+        const templateAccordion = document.querySelector('.accordion:nth-child(2)');
+        if (templateAccordion) {
+            templateAccordion.style.display = templateSpecificCSV ? 'block' : 'none';
+        }
+
+        // Load general content and Squarespace help content
+        const urls = [
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=0&single=true&output=csv',
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1380569539&single=true&output=csv'
+        ];
+
+        // Add template-specific content URL if it exists
+        if (templateSpecificCSV) {
+            urls.splice(1, 0, templateSpecificCSV);
+        }
+
+        const accordionIds = ['accordionContent', 'templateAccordionContent', 'squarespaceAccordionContent'];
+        let loadedCount = 0;
+        const totalToLoad = urls.length;
+
+        urls.forEach((url, index) => {
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    Papa.parse(data, {
+                        complete: function (results) {
+                            const rows = results.data.slice(1);
+                            // Adjust index for accordion ID if template content isn't present
+                            const accordionIndex = !templateSpecificCSV && index === 1 ? 2 : index;
+                            const accordionContent = document.getElementById(accordionIds[accordionIndex]);
+
+                            if (accordionContent) {
+                                accordionContent.innerHTML = '';
+
+                                rows.forEach(row => {
+                                    if (row.length >= 2 && row[1].trim() !== '') {
+                                        const [title, link] = row;
+                                        const isExternalLink = accordionIds[accordionIndex] === 'squarespaceAccordionContent';
+                                        const docItem = createDocItem(link, title, isExternalLink);
+                                        accordionContent.appendChild(docItem);
+                                    }
+                                });
+                            }
+
+                            loadedCount++;
+                            if (loadedCount === totalToLoad) {
+                                setupDocLinks();
+                                hideLoadingSymbol();
+                            }
+                        },
+                        error: function (error) {
+                            logError(`Error parsing CSV:`, error);
+                            loadedCount++;
+                            if (loadedCount === totalToLoad) {
+                                setupDocLinks();
+                                hideLoadingSymbol();
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    logError(`Error fetching CSV:`, error);
+                    loadedCount++;
+                    if (loadedCount === totalToLoad) {
+                        setupDocLinks();
+                        hideLoadingSymbol();
+                    }
+                });
+        });
+    }
+
+    function createDocItem(link, title, isExternalLink = false) {
+        const docItem = document.createElement('div');
+        docItem.classList.add('doc-item');
+
+        const docIcon = document.createElement('img');
+        docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
+        docIcon.classList.add('doc-icon');
+
+        const a = document.createElement('a');
+        if (isExternalLink) {
+            a.href = link;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.classList.add('external-link');
+            // Create span for link text to allow for icon positioning
+            const textSpan = document.createElement('span');
+            textSpan.textContent = title;
+            a.appendChild(textSpan);
+            // Add external link icon using SVG
+            const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgIcon.setAttribute('viewBox', '0 0 24 24');
+            svgIcon.setAttribute('width', '14');
+            svgIcon.setAttribute('height', '14');
+            svgIcon.setAttribute('fill', 'none');
+            svgIcon.setAttribute('stroke', 'currentColor');
+            svgIcon.setAttribute('stroke-width', '2');
+            svgIcon.setAttribute('stroke-linecap', 'round');
+            svgIcon.setAttribute('stroke-linejoin', 'round');
+            svgIcon.innerHTML = `
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+            `;
+            a.appendChild(svgIcon);
+        } else {
+            a.href = '#';
+            a.setAttribute('data-doc-url', link);
+            a.textContent = title;
+        }
+        a.classList.add('doc-link');
+
+        docItem.appendChild(docIcon);
+        docItem.appendChild(a);
+        return docItem;
+    }
     function injectHTML(container) {
         const templateMeta = document.querySelector('meta[squarehero-template]');
         const templateName = templateMeta ? formatTemplateName(templateMeta.getAttribute('squarehero-template')) : '';
@@ -181,7 +210,7 @@ function loadAccordionContent() {
                 <h1>SquareHero Hub</h1>
                 ${templateName ? `<p>${templateName} Template</p>` : ''}
             </div>
-            <button>SquareHero Support</button>
+            <a class="support-button" href="https://www.squarehero.store/support/" target="_blank" rel="noopener noreferrer" class="support-button">SquareHero Support</a>
         `;
 
         container.innerHTML = `
@@ -271,11 +300,22 @@ function loadAccordionContent() {
 
     function setupAccordions() {
         const accordions = document.querySelectorAll('.accordion');
+        
         accordions.forEach(accordion => {
             const header = accordion.querySelector('.accordion-header');
             const content = accordion.querySelector('.accordion-content');
-
+    
             header.addEventListener('click', function () {
+                // Close all other accordions first
+                accordions.forEach(otherAccordion => {
+                    if (otherAccordion !== accordion && otherAccordion.classList.contains('active')) {
+                        otherAccordion.classList.remove('active');
+                        const otherContent = otherAccordion.querySelector('.accordion-content');
+                        otherContent.style.maxHeight = '0px';
+                    }
+                });
+    
+                // Toggle the clicked accordion
                 accordion.classList.toggle('active');
                 if (accordion.classList.contains('active')) {
                     content.style.maxHeight = content.scrollHeight + 'px';
@@ -286,27 +326,26 @@ function loadAccordionContent() {
         });
     }
 
-
-    function createDocItem(link, title, isExternalLink = false) {
-        const docItem = document.createElement('div');
-        docItem.classList.add('doc-item');
-        const a = document.createElement('a');
-        a.href = '#';
-        a.classList.add('doc-link');
-        a.setAttribute('data-doc-url', link);
-        a.textContent = title;
-        if (isExternalLink) {
-            a.setAttribute('target', '_blank');
-            a.setAttribute('rel', 'noopener noreferrer');
-        }
-        const docIcon = document.createElement('img');
-        docIcon.src = 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-hub-doc.svg';
-        docIcon.classList.add('doc-icon');
-        docItem.appendChild(docIcon);
-        docItem.appendChild(a);
-        return docItem;
+    function setupDocLinks() {
+        debug('Setting up doc links');
+        document.querySelectorAll('.doc-link:not([target="_blank"])').forEach(link => {
+            link.addEventListener('click', function (event) {
+                debug('Doc link clicked via direct listener', this.getAttribute('data-doc-url'));
+                event.preventDefault();
+                handleDocLinkClick(this);
+            });
+        });
+        debug('Doc links setup complete');
     }
 
+    function setupFeatureLinks() {
+        document.querySelectorAll('.plugin-status .doc-link:not([target="_blank"])').forEach(link => {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                handleDocLinkClick(this);
+            });
+        });
+    }
     function loadFeatureContent() {
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1927723336&single=true&output=csv';
         const templateMeta = document.querySelector('meta[squarehero-template]');
@@ -333,8 +372,7 @@ function loadAccordionContent() {
                                 addFeature(pluginName, displayName, status, helpDocUrl, 'plugin');
                             } else {
                                 console.log(`No matching row found for plugin ${pluginName}`);
-                                // Add the feature even if there's no matching row in the spreadsheet
-                                const displayName = pluginName; // Use the plugin name as display name if not found in spreadsheet
+                                const displayName = pluginName;
                                 const status = meta.getAttribute('enabled');
                                 addFeature(pluginName, displayName, status, '', 'plugin');
                             }
@@ -396,8 +434,6 @@ function loadAccordionContent() {
                 helpLink.classList.add('doc-link');
                 helpLink.setAttribute('data-doc-url', helpDocUrl);
                 featureInfo.appendChild(helpLink);
-            } else {
-                console.log(`No help link added for ${name}`);
             }
 
             featureHeader.appendChild(icon);
@@ -421,238 +457,46 @@ function loadAccordionContent() {
             featureItem.appendChild(featureHeader);
             featureItem.appendChild(statusContainer);
             section.appendChild(featureItem);
-            console.log(`Feature ${name} added to the DOM`);
-        } else {
-            console.error(`Plugin section not found in the DOM for feature ${name}`);
         }
     }
 
-    function setupDocLinks() {
-        debug('Setting up doc links');
-        document.querySelectorAll('.doc-link').forEach(link => {
-            link.addEventListener('click', function (event) {
-                debug('Doc link clicked via direct listener', this.getAttribute('data-doc-url'));
-                event.preventDefault();
-                handleDocLinkClick(this);
-            });
-        });
-        debug('Doc links setup complete');
-    }
-
-    function setupFeatureLinks() {
-        document.querySelectorAll('.plugin-status .doc-link').forEach(link => {
-            link.addEventListener('click', function (event) {
-                event.preventDefault();
-                handleDocLinkClick(this);
-            });
-        });
-    }
-
-    function cleanGoogleDocUrl(url) {
-        if (url.includes('https://www.google.com/url?q=')) {
-            const decodedUrl = decodeURIComponent(url.split('q=')[1].split('&')[0]);
-            return decodedUrl;
-        }
-        return url;
-    }
-
-    function handleSpreadsheetLink(spreadsheetUrl) {
-        debug('Handling spreadsheet link', spreadsheetUrl);
-        showLoadingSymbol();
-        fetch(spreadsheetUrl)
-            .then(response => {
-                debug('Spreadsheet fetch response', response);
-                return response.text();
-            })
-            .then(data => {
-                debug('Spreadsheet raw data', data.substring(0, 100) + '...');
-                Papa.parse(data, {
-                    complete: function (results) {
-                        debug('Papa Parse results', results);
-                        if (results.errors.length > 0) {
-                            throw new Error('Failed to parse spreadsheet data');
-                        }
-
-                        const rows = results.data.slice(1); // Skip the header row
-                        debug('Parsed rows', rows.length);
-                        if (rows.length === 0) {
-                            throw new Error('No valid data found in the spreadsheet');
-                        }
-
-                        let anchorLinks = '<div class="anchor-links">';
-                        let fetchPromises = [];
-
-                        rows.forEach((row, index) => {
-                            debug(`Processing row ${index}`, row);
-                            if (row.length >= 2 && row[1].trim() !== '') {
-                                const [title, docUrl] = row;
-                                const anchorId = `doc-${index}`;
-
-                                anchorLinks += `<a href="#${anchorId}" class="doc-anchor"><span>${title}</span></a>`;
-                                debug(`Added anchor link for ${title}`);
-
-                                fetchPromises.push(
-                                    fetchGoogleDocContent(docUrl)
-                                        .then(docContent => {
-                                            debug(`Fetched content for ${title}`, docContent.substring(0, 100) + '...');
-                                            return { index, content: `<div id="${anchorId}" class="doc-section">${docContent}</div>` };
-                                        })
-                                );
-                            } else {
-                                debug(`Skipped invalid row ${index}`, row);
-                            }
-                        });
-
-                        if (fetchPromises.length === 0) {
-                            throw new Error('No valid entries found in the spreadsheet');
-                        }
-
-                        anchorLinks += '</div>';
-                        debug('Final anchor links', anchorLinks);
-
-                        Promise.all(fetchPromises)
-                            .then(results => {
-                                debug('All promises resolved', results.length);
-                                results.sort((a, b) => a.index - b.index);
-                                const content = results.map(result => result.content).join('');
-                                debug('Final content length', content.length);
-                                displayHelpContent(anchorLinks + '<div class="docs-content">' + content + '</div>', true);
-                            })
-                            .catch(error => {
-                                logError('Error fetching multiple docs:', error);
-                                displayErrorMessage('Failed to load content. Please try again later.');
-                            })
-                            .finally(() => {
-                                hideLoadingSymbol();
-                            });
-                    },
-                    error: function (error) {
-                        logError('Error parsing spreadsheet:', error);
-                        displayErrorMessage('Failed to parse spreadsheet content. Please try again later.');
-                        hideLoadingSymbol();
-                    }
-                });
-            })
-            .catch(error => {
-                logError('Error fetching Google Spreadsheet:', error);
-                displayErrorMessage('Failed to fetch spreadsheet. Please try again later.');
-                hideLoadingSymbol();
-            });
-    }
-
-    function cleanGoogleRedirectUrl(url) {
-        if (url && url.includes('https://www.google.com/url?q=')) {
-            try {
-                const actualUrl = decodeURIComponent(url.split('q=')[1].split('&')[0]);
-                return actualUrl;
-            } catch (error) {
-                console.error('[SquareHero Error] Failed to clean Google redirect URL:', error);
-                return url;
-            }
-        }
-        return url;
-    }
-    
-    function cleanContentLinks(content) {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = content;
-        
-        const links = tempDiv.querySelectorAll('a');
-        links.forEach(link => {
-            const href = link.getAttribute('href');
-            if (href) {
-                const cleanedHref = cleanGoogleRedirectUrl(href);
-                link.setAttribute('href', cleanedHref);
-            }
-        });
-        
-        return tempDiv.innerHTML;
-    }
-
-    function fetchGoogleDocContent(docUrl) {
-        return fetch(docUrl)
-            .then(response => response.text())
-            .then(data => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(data, 'text/html');
-                
-                // Find and process style tags
-                const styleTags = doc.querySelectorAll('style');
-                const boldClasses = new Set();
-                
-                styleTags.forEach(styleTag => {
-                    const cssText = styleTag.textContent;
-                    // Find all class definitions containing font-weight: 700
-                    const matches = cssText.match(/\.c\d+[^}]*font-weight:\s*700[^}]*}/g);
-                    if (matches) {
-                        matches.forEach(match => {
-                            // Extract the class name (e.g., 'c4' from '.c4{...')
-                            const className = match.match(/\.c\d+/)[0].substring(1);
-                            boldClasses.add(className);
-                        });
-                    }
-                });
-    
-                let content = doc.querySelector('.doc-content');
-                if (!content) {
-                    content = doc;
-                }
-    
-                // Add custom bold class to elements with bold classes
-                boldClasses.forEach(boldClass => {
-                    const boldElements = content.querySelectorAll(`.${boldClass}`);
-                    boldElements.forEach(element => {
-                        element.classList.add('sh-bold');
-                    });
-                });
-                
-                // Convert to string and clean up
-                content = content.innerHTML || content.body.innerHTML;
-                
-                // Clean Google redirect URLs
-                content = cleanContentLinks(content);
-                content = renderPlaceholders(content);
-    
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = content;
-    
-                // Process links
-                const links = tempDiv.querySelectorAll('a');
-                links.forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-                        link.setAttribute('target', '_blank');
-                        link.setAttribute('rel', 'noopener noreferrer');
-                    }
-                });
-    
-                return tempDiv.innerHTML;
-            });
-    }
-
-    //  copyToClipboard function
+   // Universal copyToClipboard function
 if (!window.copyToClipboard) {
-    window.copyToClipboard = function(text, element) {
-        navigator.clipboard.writeText(text)
+    window.copyToClipboard = function(textOrElement, element = null) {
+        // If first parameter is a string, we're copying from color scheme
+        // If it's an element, we're copying from code block
+        const isColorScheme = typeof textOrElement === 'string';
+        
+        let textToCopy;
+        let feedbackElement;
+        
+        if (isColorScheme) {
+            textToCopy = textOrElement;
+            feedbackElement = element.querySelector('.copy-feedback');
+        } else {
+            const button = textOrElement.closest('.copy-button');
+            textToCopy = decodeHTML(button.getAttribute('data-code'));
+            feedbackElement = button.querySelector('.copy-feedback');
+        }
+
+        navigator.clipboard.writeText(textToCopy)
             .then(() => {
-                const feedback = element.querySelector('.copy-feedback');
-                feedback.classList.add('show');
+                feedbackElement.textContent = 'Copied!';  // Reset text in case it was changed
+                feedbackElement.classList.add('show');
                 setTimeout(() => {
-                    feedback.classList.remove('show');
+                    feedbackElement.classList.remove('show');
                 }, 2000);
             })
             .catch(err => {
                 console.error('Failed to copy:', err);
-                const feedback = element.querySelector('.copy-feedback');
-                feedback.textContent = 'Failed to copy';
-                feedback.classList.add('show');
+                feedbackElement.textContent = 'Failed to copy';
+                feedbackElement.classList.add('show');
                 setTimeout(() => {
-                    feedback.classList.remove('show');
+                    feedbackElement.classList.remove('show');
                 }, 2000);
             });
     };
 }
-
 
     function renderPlaceholders(content) {
         content = content.replace(/{{ HERO ALERT }}(.*?){{ END HERO ALERT }}/gs, (match, p1) => {
@@ -664,6 +508,7 @@ if (!window.copyToClipboard) {
                 </div>
             `;
         });
+
         content = content.replace(/{{ HERO TIP }}(.*?){{ END HERO TIP }}/gs, (match, p1) => {
             p1 = renderInnerPlaceholders(p1);
             return `
@@ -673,6 +518,7 @@ if (!window.copyToClipboard) {
                 </div>
             `;
         });
+
         content = content.replace(/{{ UPDATED }}(.*?){{ END UPDATED }}/gs, (match, p1) => {
             p1 = renderInnerPlaceholders(p1);
             return `
@@ -681,9 +527,9 @@ if (!window.copyToClipboard) {
                 </div>
             `;
         });
-    
-        // Color scheme handler
-        content = content.replace(/{{ COLOR SCHEME }}([\s\S]*?){{ END COLOR SCHEME }}/gs, (match, p1) => {
+
+         // Color scheme handler
+         content = content.replace(/{{ COLOR SCHEME }}([\s\S]*?){{ END COLOR SCHEME }}/gs, (match, p1) => {
             // Clean up the input
             const cleanInput = p1
                 .replace(/<br>/g, '\n')
@@ -738,10 +584,133 @@ if (!window.copyToClipboard) {
                 </div>
             `;
         });
-    
+
+        // Code block handler
+        content = content.replace(/{{ CODEBLOCK }}([\s\S]*?){{ END CODEBLOCK }}/gs, (match, p1) => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = p1;
+            
+            // Get all paragraphs with c-number classes and their spans
+            const lines = [];
+            tempDiv.querySelectorAll('p[class^="c"]').forEach(p => {
+                const span = p.querySelector('span[class^="c"]');
+                if (span && span.textContent.trim()) {
+                    lines.push(span.textContent.trim());
+                }
+            });
+
+            // Join lines and escape HTML
+            let displayContent = lines.join('\n')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Add syntax highlighting
+            displayContent = displayContent
+                // Highlight comments
+                .replace(/(&lt;!--.*?--&gt;)/g, '<span class="comment">$1</span>')
+                // Highlight tags and attributes
+                .replace(/(&lt;\/?)([\w-]+)([^&]*?)(&gt;)/g, (match, start, tag, attrs, end) => {
+                    let result = `<span class="tag">${start}${tag}</span>`;
+                    
+                    // Process attributes if they exist
+                    if (attrs) {
+                        attrs = attrs.replace(/(\s+)([\w-]+)(?:=(["|'].*?["|']))?/g, (m, space, name, value) => {
+                            if (value) {
+                                return `${space}<span class="attr">${name}</span>=<span class="attr-value">${value}</span>`;
+                            }
+                            return `${space}<span class="attr">${name}</span>`;
+                        });
+                        result += attrs;
+                    }
+                    
+                    result += `<span class="tag">${end}</span>`;
+                    return result;
+                });
+
+            return `
+                <div class="code-block-container">
+                    <pre class="code-block">${displayContent}</pre>
+                    <button class="copy-button" onclick="copyToClipboard(this)" data-code="${escapeForHTML(lines.join('\n'))}">
+                        Copy Code
+                        <div class="copy-feedback">Copied!</div>
+                    </button>
+                </div>
+            `;
+        });
+
+        // Color scheme handler
+        content = content.replace(/{{ COLOR SCHEME }}([\s\S]*?){{ END COLOR SCHEME }}/gs, (match, p1) => {
+            // Process spans and p tags to get clean content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = p1;
+            
+            const lines = [];
+            tempDiv.querySelectorAll('p[class^="c"]').forEach(p => {
+                const span = p.querySelector('span[class^="c"]');
+                if (span && span.textContent.trim()) {
+                    lines.push(span.textContent.trim());
+                }
+            });
+            
+            // Clean up the input
+            const cleanInput = lines.join('\n')
+                .replace(/<br>/g, '\n')
+                .replace(/<[^>]+>/g, '')
+                .replace(/\s*class="[^"]*"\s*/g, '')
+                .replace(/​/g, '')
+                .replace(/\r/g, '')
+                .trim();
+            
+            // Split into lines
+            const colorLines = cleanInput.split('\n').map(line => line.trim()).filter(line => line);
+            
+            // First line is title if it doesn't contain a comma
+            let title = '';
+            let colorStart = 0;
+            
+            if (!colorLines[0].includes(',')) {
+                title = colorLines[0];
+                colorStart = 1;
+            }
+            
+            // Parse remaining lines as colors
+            const colors = colorLines.slice(colorStart)
+                .filter(line => line && line.includes(','))
+                .map(line => {
+                    const [name, hex] = line.split(',', 2);
+                    const cleanHex = hex.trim().replace(/[^#A-Fa-f0-9]/g, '');
+                    const formattedHex = cleanHex.startsWith('#') ? cleanHex : '#' + cleanHex;
+                    
+                    return {
+                        name: name.trim(),
+                        hex: formattedHex
+                    };
+                });
+
+            return `
+                <div class="color-scheme-container">
+                    ${title ? `<div class="color-scheme-title">${title}</div>` : ''}
+                    ${colors.map(color => `
+                        <div class="color-block" 
+                             onclick="copyToClipboard(this)" data-code="${color.hex}"
+                             style="
+                                background-color: ${color.hex};
+                                color: ${isLightColor(color.hex) ? '#182C4F' : '#FFFFFF'};
+                                ${(color.hex.toUpperCase() === '#FFFFFF' || color.hex.toUpperCase() === '#F5F5F5') ? 'border: 1px solid #182C4F;' : ''}
+                             "
+                        >
+                            ${color.name} ${color.hex}
+                            <div class="copy-feedback">Copied!</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        });
+
         return content;
     }
-    
+
     // Helper function to determine if a color is light
     function isLightColor(hex) {
         // Remove the hash if present
@@ -766,13 +735,241 @@ if (!window.copyToClipboard) {
         text = text.replace(/{{ GDOC }}\[([^\]]+)\]\(([^)]+)\){{ END GDOC }}/g, (match, linkText, url) => {
             return `<a href="#" class="doc-link" data-doc-url="${url}">${linkText}</a>`;
         });
-        text = text.replace(/{{ CODEBLOCK }}([\s\S]*?){{ END CODEBLOCK }}/g, (match, codeContent) => {
-            codeContent = codeContent.trim();
-            return `<div class="hub-code-block">${codeContent}</div>`;
-        });
         return text;
     }
+    function handleDocLinkClick(link) {
+        try {
+            const docUrl = cleanGoogleDocUrl(link.getAttribute('data-doc-url'));
+            showLoadingSymbol();
 
+            if (docUrl.includes('spreadsheets/d/')) {
+                debug('Detected spreadsheet link', docUrl);
+                handleSpreadsheetLink(docUrl);
+            } else {
+                debug('Detected regular doc link', docUrl);
+                fetchGoogleDocContent(docUrl)
+                    .then(content => {
+                        content += renderFooter();
+                        displayHelpContent(content, false);
+                    })
+                    .catch(error => {
+                        logError('Error fetching Google Doc:', error);
+                        displayErrorMessage('Failed to load document. Please try again later.');
+                    })
+                    .finally(() => {
+                        hideLoadingSymbol();
+                    });
+            }
+        } catch (error) {
+            logError('Error in doc link click handler:', error);
+            displayErrorMessage('An unexpected error occurred. Please try again later.');
+            hideLoadingSymbol();
+        }
+    }
+
+    function cleanGoogleDocUrl(url) {
+        if (url.includes('https://www.google.com/url?q=')) {
+            const decodedUrl = decodeURIComponent(url.split('q=')[1].split('&')[0]);
+            return decodedUrl;
+        }
+        return url;
+    }
+
+    function cleanGoogleRedirectUrl(url) {
+        if (url && url.includes('https://www.google.com/url?q=')) {
+            try {
+                const actualUrl = decodeURIComponent(url.split('q=')[1].split('&')[0]);
+                return actualUrl;
+            } catch (error) {
+                console.error('[SquareHero Error] Failed to clean Google redirect URL:', error);
+                return url;
+            }
+        }
+        return url;
+    }
+
+    function cleanContentLinks(content) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+
+        const links = tempDiv.querySelectorAll('a');
+        links.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href) {
+                const cleanedHref = cleanGoogleRedirectUrl(href);
+                link.setAttribute('href', cleanedHref);
+            }
+        });
+
+        return tempDiv.innerHTML;
+    }
+
+    function fetchGoogleDocContent(docUrl) {
+        return fetch(docUrl)
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+
+                // Find and process style tags
+                const styleTags = doc.querySelectorAll('style');
+                const boldClasses = new Set();
+
+                styleTags.forEach(styleTag => {
+                    const cssText = styleTag.textContent;
+                    // Find all class definitions containing font-weight: 700
+                    const matches = cssText.match(/\.c\d+[^}]*font-weight:\s*700[^}]*}/g);
+                    if (matches) {
+                        matches.forEach(match => {
+                            const className = match.match(/\.c\d+/)[0].substring(1);
+                            boldClasses.add(className);
+                        });
+                    }
+                });
+
+                let content = doc.querySelector('.doc-content');
+                if (!content) {
+                    content = doc;
+                }
+
+                // Add custom bold class to elements with bold classes
+                boldClasses.forEach(boldClass => {
+                    const boldElements = content.querySelectorAll(`.${boldClass}`);
+                    boldElements.forEach(element => {
+                        element.classList.add('sh-bold');
+                    });
+                });
+
+                // Convert to string and clean up
+                content = content.innerHTML || content.body.innerHTML;
+
+                // Clean Google redirect URLs
+                content = cleanContentLinks(content);
+                content = renderPlaceholders(content);
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+
+                // Process links
+                const links = tempDiv.querySelectorAll('a');
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !href.startsWith('mailto:')) {
+                        link.setAttribute('target', '_blank');
+                        link.setAttribute('rel', 'noopener noreferrer');
+                        link.classList.add('external-link');
+
+                        // Wrap existing text in a span
+                        const textSpan = document.createElement('span');
+                        while (link.firstChild) {
+                            textSpan.appendChild(link.firstChild);
+                        }
+                        link.appendChild(textSpan);
+
+                        // Add external link icon
+                        const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svgIcon.setAttribute('viewBox', '0 0 24 24');
+                        svgIcon.setAttribute('width', '14');
+                        svgIcon.setAttribute('height', '14');
+                        svgIcon.setAttribute('fill', 'none');
+                        svgIcon.setAttribute('stroke', 'currentColor');
+                        svgIcon.setAttribute('stroke-width', '2');
+                        svgIcon.setAttribute('stroke-linecap', 'round');
+                        svgIcon.setAttribute('stroke-linejoin', 'round');
+                        svgIcon.innerHTML = `
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        `;
+                        link.appendChild(svgIcon);
+                    }
+                });
+
+                return tempDiv.innerHTML;
+            });
+    }
+
+    function handleSpreadsheetLink(spreadsheetUrl) {
+        debug('Handling spreadsheet link', spreadsheetUrl);
+        showLoadingSymbol();
+        fetch(spreadsheetUrl)
+            .then(response => {
+                debug('Spreadsheet fetch response', response);
+                return response.text();
+            })
+            .then(data => {
+                debug('Spreadsheet raw data', data.substring(0, 100) + '...');
+                Papa.parse(data, {
+                    complete: function (results) {
+                        debug('Papa Parse results', results);
+                        if (results.errors.length > 0) {
+                            throw new Error('Failed to parse spreadsheet data');
+                        }
+
+                        const rows = results.data.slice(1); // Skip the header row
+                        debug('Parsed rows', rows.length);
+                        if (rows.length === 0) {
+                            throw new Error('No valid data found in the spreadsheet');
+                        }
+
+                        let anchorLinks = '<div class="anchor-links">';
+                        let fetchPromises = [];
+
+                        rows.forEach((row, index) => {
+                            debug(`Processing row ${index}`, row);
+                            if (row.length >= 2 && row[1].trim() !== '') {
+                                const [title, docUrl] = row;
+                                const anchorId = `doc-${index}`;
+
+                                anchorLinks += `<a href="#${anchorId}" class="doc-anchor"><span>${title}</span></a>`;
+                                debug(`Added anchor link for ${title}`);
+
+                                fetchPromises.push(
+                                    fetchGoogleDocContent(docUrl)
+                                        .then(docContent => {
+                                            debug(`Fetched content for ${title}`, docContent.substring(0, 100) + '...');
+                                            return { index, content: `<div id="${anchorId}" class="doc-section">${docContent}</div>` };
+                                        })
+                                );
+                            }
+                        });
+
+                        if (fetchPromises.length === 0) {
+                            throw new Error('No valid entries found in the spreadsheet');
+                        }
+
+                        anchorLinks += '</div>';
+                        debug('Final anchor links', anchorLinks);
+
+                        Promise.all(fetchPromises)
+                            .then(results => {
+                                debug('All promises resolved', results.length);
+                                results.sort((a, b) => a.index - b.index);
+                                const content = results.map(result => result.content).join('');
+                                debug('Final content length', content.length);
+                                displayHelpContent(anchorLinks + '<div class="docs-content">' + content + '</div>', true);
+                            })
+                            .catch(error => {
+                                logError('Error fetching multiple docs:', error);
+                                displayErrorMessage('Failed to load content. Please try again later.');
+                            })
+                            .finally(() => {
+                                hideLoadingSymbol();
+                            });
+                    },
+                    error: function (error) {
+                        logError('Error parsing spreadsheet:', error);
+                        displayErrorMessage('Failed to parse spreadsheet content. Please try again later.');
+                        hideLoadingSymbol();
+                    }
+                });
+            })
+            .catch(error => {
+                logError('Error fetching Google Spreadsheet:', error);
+                displayErrorMessage('Failed to fetch spreadsheet. Please try again later.');
+                hideLoadingSymbol();
+            });
+    }
     function displayHelpContent(content, isMultipleDocs = false) {
         debug('Displaying help content', { isMultipleDocs, contentLength: content.length });
         const mainContent = document.querySelector('.main-content');
