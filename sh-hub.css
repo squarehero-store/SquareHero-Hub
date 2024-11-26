@@ -311,7 +311,6 @@
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
 }
 .squarehero-hub #SquareHeroHub .plugin-status .plugin-header {
   display: flex;

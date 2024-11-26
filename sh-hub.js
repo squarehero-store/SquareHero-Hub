@@ -257,11 +257,11 @@
                 </div>
                 <div class="right-column">
                     <div class="section">
-                        <h3>Plugins & Customizations</h3>
+                        <h3>Plugins & Features</h3>
                         <div id="pluginSection" class="plugin-section"></div>
                     </div>
                     <div class="section instructions">
-                        <p>To enable or disable a plugin or customization, <a id="code-injection-link" href="/config/pages/website-tools/code-injection">click here to go to Code Injection</a>, find the relevant meta tag, and change its enabled value to either true or false.</p>
+                        <p>To enable or disable a plugin or feature, <a id="code-injection-link" href="/config/pages/website-tools/code-injection">click here to go to Code Injection</a>, find the relevant meta tag, and change its enabled value to either true or false.</p>
                     </div>
                 </div>
             </div>
@@ -350,14 +350,20 @@
         const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGNbY1QT8y6xd1N0lThIkhQezHBXxahEfh1OWBuvt7aB0HsFpsnN5p8LIhTOgU6BH2cwnMW3pwsEBY/pub?gid=1927723336&single=true&output=csv';
         const templateMeta = document.querySelector('meta[squarehero-template]');
         const templateName = templateMeta ? templateMeta.getAttribute('squarehero-template') : '';
-
+    
         fetch(sheetUrl)
             .then(response => response.text())
             .then(data => {
                 Papa.parse(data, {
                     complete: function (results) {
                         const rows = results.data.slice(1);
-
+                        const pluginSection = document.getElementById('pluginSection');
+                        if (!pluginSection) {
+                            console.error('Plugin section not found');
+                            return;
+                        }
+                        pluginSection.innerHTML = ''; // Clear existing content
+    
                         // Handle plugins
                         const pluginMetas = Array.from(document.querySelectorAll('meta[squarehero-plugin]'));
                         console.log(`Found ${pluginMetas.length} plugin meta tags`);
@@ -377,21 +383,45 @@
                                 addFeature(pluginName, displayName, status, '', 'plugin');
                             }
                         });
-
-                        // Handle customizations
-                        const customizationMetas = Array.from(document.querySelectorAll('meta[squarehero-customization]'));
-                        customizationMetas.forEach(meta => {
-                            const customizationName = meta.getAttribute('squarehero-customization');
-                            const sheetKey = `${templateName}-${customizationName}`;
-                            const matchingRow = rows.find(row => row[0] === sheetKey && row.length >= 3 && row[2].trim() !== '');
-                            if (matchingRow) {
+    
+                        // Handle template features (formerly customizations)
+                        const featureMetas = Array.from(document.querySelectorAll('meta[squarehero-feature]'));
+                        console.log(`Found ${featureMetas.length} feature meta tags`);
+                        featureMetas.forEach(meta => {
+                            const featureName = meta.getAttribute('squarehero-feature');
+                            const sheetKey = `${templateName}-${featureName}`;
+                            console.log(`Looking for feature with key: ${sheetKey}`);
+                            
+                            // Find matching row in spreadsheet
+                            const matchingRow = rows.find(row => {
+                                const rowKey = row[0] && row[0].trim().toLowerCase();
+                                const searchKey = sheetKey.toLowerCase();
+                                const matches = rowKey === searchKey;
+                                if (matches) {
+                                    console.log(`Found matching row for ${sheetKey}:`, row);
+                                }
+                                return matches;
+                            });
+    
+                            if (matchingRow && matchingRow.length >= 2) {
+                                console.log(`Processing feature: ${sheetKey}`);
                                 const [_, displayName, helpDocUrl] = matchingRow;
                                 const status = meta.getAttribute('enabled');
-                                const darkMode = meta.getAttribute('darkmode');
-                                addFeature(customizationName, displayName, status, helpDocUrl, 'customization', darkMode);
+                                const darkMode = meta.getAttribute('darkmode') === 'true';
+                                
+                                console.log(`Adding feature for ${featureName}:`, {
+                                    displayName,
+                                    status,
+                                    helpDocUrl,
+                                    darkMode
+                                });
+                                
+                                addFeature(sheetKey, displayName, status, helpDocUrl, 'feature', darkMode);
+                            } else {
+                                console.log(`No matching row found for feature: ${sheetKey}`);
                             }
                         });
-
+    
                         setupFeatureLinks();
                         hideLoadingSymbol();
                     }
@@ -405,27 +435,28 @@
 
     function addFeature(name, displayName, status, helpDocUrl, type, darkMode) {
         console.log(`Adding feature: ${name}, Display Name: ${displayName}, Status: ${status}, Help URL: ${helpDocUrl}, Type: ${type}, Dark Mode: ${darkMode}`);
-
+    
         const section = document.getElementById('pluginSection');
         if (section) {
             const featureItem = document.createElement('div');
             featureItem.classList.add('plugin-status');
+    
             const featureHeader = document.createElement('div');
             featureHeader.classList.add('plugin-header');
-
+    
             const icon = document.createElement('img');
             icon.src = `https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-plugin-icon.svg`;
             icon.classList.add('plugin-icon');
-
+    
             const featureInfo = document.createElement('div');
             featureInfo.classList.add('plugin-info');
-
+    
             const featureTitle = document.createElement('span');
             featureTitle.classList.add('plugin-title');
             featureTitle.textContent = displayName;
-
+    
             featureInfo.appendChild(featureTitle);
-
+    
             if (helpDocUrl && helpDocUrl.trim() !== '') {
                 console.log(`Adding help link for ${name}`);
                 const helpLink = document.createElement('a');
@@ -435,25 +466,27 @@
                 helpLink.setAttribute('data-doc-url', helpDocUrl);
                 featureInfo.appendChild(helpLink);
             }
-
+    
             featureHeader.appendChild(icon);
             featureHeader.appendChild(featureInfo);
-
+    
             const statusContainer = document.createElement('div');
             statusContainer.classList.add('status-container');
-
-            const statusSpan = document.createElement('span');
-            statusSpan.classList.add('status', status === 'true' ? 'enabled' : 'disabled');
-            statusSpan.textContent = status === 'true' ? 'Enabled' : 'Disabled';
-            statusContainer.appendChild(statusSpan);
-
-            if (darkMode === 'true') {
-                const darkModeSpan = document.createElement('span');
-                darkModeSpan.classList.add('status', 'dark-mode');
-                darkModeSpan.textContent = 'Dark Mode';
-                statusContainer.appendChild(darkModeSpan);
+    
+            // Special case for cornerstone-builders header dark mode
+            if (name === 'cornerstone-builders-header') {
+                const statusSpan = document.createElement('span');
+                statusSpan.classList.add('status', darkMode ? 'enabled' : 'disabled');
+                statusSpan.textContent = darkMode ? 'Enabled' : 'Disabled';
+                statusContainer.appendChild(statusSpan);
+            } else {
+                // Normal enabled/disabled status for all other features
+                const statusSpan = document.createElement('span');
+                statusSpan.classList.add('status', status === 'true' ? 'enabled' : 'disabled');
+                statusSpan.textContent = status === 'true' ? 'Enabled' : 'Disabled';
+                statusContainer.appendChild(statusSpan);
             }
-
+    
             featureItem.appendChild(featureHeader);
             featureItem.appendChild(statusContainer);
             section.appendChild(featureItem);
