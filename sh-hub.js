@@ -445,7 +445,10 @@
             featureHeader.classList.add('plugin-header');
     
             const icon = document.createElement('img');
-            icon.src = `https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-plugin-icon.svg`;
+            // Use different hosted icons based on type
+            icon.src = type === 'plugin' 
+                ? 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-plugin-icon.svg'
+                : 'https://cdn.jsdelivr.net/gh/squarehero-store/SquareHero-Hub@0/sh-feature-icon.svg';
             icon.classList.add('plugin-icon');
     
             const featureInfo = document.createElement('div');
