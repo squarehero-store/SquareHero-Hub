@@ -105,7 +105,7 @@
 }
 .squarehero-hub #SquareHeroHub header p {
   text-align: center;
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 400;
   line-height: 130%;
   color: white;
@@ -180,7 +180,7 @@
 .squarehero-hub #SquareHeroHub .main-content p,
 .squarehero-hub #SquareHeroHub .main-content a,
 .squarehero-hub #SquareHeroHub .main-content a span {
-  font-size: 1rem;
+  font-size: 1.125rem;
   line-height: 130%;
   color: #011e45;
 }
@@ -376,7 +376,7 @@
   /*Gradient bg*/
 }
 .squarehero-hub #SquareHeroHub .doc-content p {
-  font-size: 1rem;
+  font-size: 1.125rem;
   color: #011e45;
   line-height: 140%;
 }
@@ -400,7 +400,7 @@
   transition: transform 0.2s ease;
 }
 .squarehero-hub #SquareHeroHub .doc-content p span {
-  font-size: 1rem;
+  font-size: 1.125rem;
   line-height: 140%;
 }
 .squarehero-hub #SquareHeroHub .doc-content h1 {
@@ -414,10 +414,10 @@
 .squarehero-hub #SquareHeroHub .doc-content h3 {
   margin-top: 0;
   margin-bottom: 0;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
 }
 .squarehero-hub #SquareHeroHub .doc-content h4 {
-  font-size: 1rem;
+  font-size: 1.125rem;
 }
 .squarehero-hub #SquareHeroHub .doc-content li {
   padding-bottom: 10px;
@@ -464,7 +464,7 @@
   margin-bottom: 10px;
 }
 .squarehero-hub #SquareHeroHub .doc-content .alert p {
-  font-size: 1rem;
+  font-size: 1.125rem;
 }
 .squarehero-hub #SquareHeroHub .doc-content .alert h2 {
   font-size: 1.75rem;
@@ -484,7 +484,7 @@
   margin: 10px 0;
   padding: 20px;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 1.125rem;
   cursor: pointer;
   position: relative;
   transition: transform 0.2s;

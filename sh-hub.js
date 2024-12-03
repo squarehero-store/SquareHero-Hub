@@ -99,6 +99,90 @@
 
     // Placeholder rendering functions that were also missing
     function renderPlaceholders(content) {
+        // Existing Base64 CODEBLOCK handler
+        content = content.replace(/{{ CODEBLOCK }}\s*([\w+/=]+)\s*{{ END CODEBLOCK }}/gs, (match, p1) => {
+            try {
+                const cleanBase64 = p1.replace(/\s/g, '');
+                debug('Cleaned Base64:', cleanBase64);
+                const decodedContent = decodeURIComponent(escape(atob(cleanBase64)));
+                debug('Decoded content:', decodedContent);
+    
+                let displayContent = decodedContent
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/(&lt;!--[=\s]*.*?--&gt;)/g, '<span class="comment">$1</span>')
+                    .replace(/(&lt;script[^&]*?&gt;)([\s\S]*?)(&lt;\/script&gt;)/g, (match, start, content, end) => {
+                        return `<span class="tag">${start}</span><span class="code">${content}</span><span class="tag">${end}</span>`;
+                    })
+                    .replace(/(&lt;meta)([^&]*?)(&gt;)/g, (match, start, attrs, end) => {
+                        let result = `<span class="tag">${start}</span>`;
+                        if (attrs) {
+                            attrs = attrs.replace(/(\s+)([\w-]+)(?:=(["|'].*?["|']))?/g, (m, space, name, value) => {
+                                if (value) {
+                                    return `${space}<span class="attr">${name}</span>=<span class="attr-value">${value}</span>`;
+                                }
+                                return `${space}<span class="attr">${name}</span>`;
+                            });
+                            result += attrs;
+                        }
+                        result += `<span class="tag">${end}</span>`;
+                        return result;
+                    });
+    
+                return `
+                    <div class="code-block-container">
+                        <pre class="code-block">${displayContent}</pre>
+                        <button class="copy-button" onclick="copyToClipboard(this)" data-code="${escapeForHTML(decodedContent)}">
+                            Copy Code
+                            <div class="copy-feedback">Copied!</div>
+                        </button>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Base64 Decoding Error:', error);
+                return `
+                    <div class="code-block-container">
+                        <pre class="code-block error">
+                            Base64 decoding error: ${error.message}
+                            Please ensure there are no extra spaces or line breaks in the Base64 content.
+                            
+                            Debug info:
+                            Raw match length: ${match.length}
+                            Captured content length: ${p1.length}
+                            First 50 chars of captured content: ${p1.substring(0, 50)}...
+                            Full captured content: ${p1}
+                        </pre>
+                    </div>
+                `;
+            }
+        });
+    
+        // New HTML merge tag handler
+        content = content.replace(/{{ HTML }}\s*([\w+/=]+)\s*{{ END HTML }}/gs, (match, p1) => {
+            try {
+                const cleanBase64 = p1.replace(/\s/g, '');
+                debug('Cleaned HTML Base64:', cleanBase64);
+                const decodedContent = decodeURIComponent(escape(atob(cleanBase64)));
+                debug('Decoded HTML content:', decodedContent);
+    
+                return `
+                    <div class="html-preview-container">
+                        ${decodedContent}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('HTML Base64 Decoding Error:', error);
+                return `
+                    <div class="html-preview-container error">
+                        <p>Error rendering HTML content: ${error.message}</p>
+                        <p>Please ensure the Base64 content is properly encoded.</p>
+                    </div>
+                `;
+            }
+        });
+    
+        // Existing placeholder handlers
         content = content.replace(/{{ HERO ALERT }}(.*?){{ END HERO ALERT }}/gs, (match, p1) => {
             p1 = renderInnerPlaceholders(p1);
             return `
@@ -108,7 +192,7 @@
                 </div>
             `;
         });
-
+    
         content = content.replace(/{{ HERO TIP }}(.*?){{ END HERO TIP }}/gs, (match, p1) => {
             p1 = renderInnerPlaceholders(p1);
             return `
@@ -118,7 +202,7 @@
                 </div>
             `;
         });
-
+    
         content = content.replace(/{{ UPDATED }}(.*?){{ END UPDATED }}/gs, (match, p1) => {
             p1 = renderInnerPlaceholders(p1);
             return `
@@ -127,8 +211,8 @@
                 </div>
             `;
         });
-
-        // Color scheme handler
+    
+        // Existing color scheme handler
         content = content.replace(/{{ COLOR SCHEME }}([\s\S]*?){{ END COLOR SCHEME }}/gs, (match, p1) => {
             const cleanInput = p1
                 .replace(/<br>/g, '\n')
@@ -137,30 +221,30 @@
                 .replace(/​/g, '')
                 .replace(/\r/g, '')
                 .trim();
-
+    
             const lines = cleanInput.split('\n').map(line => line.trim()).filter(line => line);
-
+    
             let title = '';
             let colorStart = 0;
-
+    
             if (!lines[0].includes(',')) {
                 title = lines[0];
                 colorStart = 1;
             }
-
+    
             const colors = lines.slice(colorStart)
                 .filter(line => line && line.includes(','))
                 .map(line => {
                     const [name, hex] = line.split(',', 2);
                     const cleanHex = hex.trim().replace(/[^#A-Fa-f0-9]/g, '');
                     const formattedHex = cleanHex.startsWith('#') ? cleanHex : '#' + cleanHex;
-
+    
                     return {
                         name: name.trim(),
                         hex: formattedHex
                     };
                 });
-
+    
             return `
                 <div class="color-scheme-container">
                     ${title ? `<div class="color-scheme-title">${title}</div>` : ''}
@@ -180,75 +264,7 @@
                 </div>
             `;
         });
-
-        // Add Base64 handler first
-        content = content.replace(/{{ CODEBLOCK }}\s*([\w+/=]+)\s*{{ END CODEBLOCK }}/gs, (match, p1) => {
-            try {
-                // Clean up the Base64 string - remove any remaining whitespace
-                const cleanBase64 = p1.replace(/\s/g, '');
-                debug('Cleaned Base64:', cleanBase64);
-
-                // Decode Base64 content with UTF-8 handling
-                const decodedContent = decodeURIComponent(escape(atob(cleanBase64)));
-                debug('Decoded content:', decodedContent);
-
-                // Format the decoded content
-                let displayContent = decodedContent
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    // Add syntax highlighting for comments
-                    .replace(/(&lt;!--[=\s]*.*?--&gt;)/g, '<span class="comment">$1</span>')
-                    // Add syntax highlighting for script tags
-                    .replace(/(&lt;script[^&]*?&gt;)([\s\S]*?)(&lt;\/script&gt;)/g, (match, start, content, end) => {
-                        return `<span class="tag">${start}</span><span class="code">${content}</span><span class="tag">${end}</span>`;
-                    })
-                    // Add syntax highlighting for meta tags and attributes
-                    .replace(/(&lt;meta)([^&]*?)(&gt;)/g, (match, start, attrs, end) => {
-                        let result = `<span class="tag">${start}</span>`;
-
-                        if (attrs) {
-                            attrs = attrs.replace(/(\s+)([\w-]+)(?:=(["|'].*?["|']))?/g, (m, space, name, value) => {
-                                if (value) {
-                                    return `${space}<span class="attr">${name}</span>=<span class="attr-value">${value}</span>`;
-                                }
-                                return `${space}<span class="attr">${name}</span>`;
-                            });
-                            result += attrs;
-                        }
-
-                        result += `<span class="tag">${end}</span>`;
-                        return result;
-                    });
-
-                return `
-                <div class="code-block-container">
-                    <pre class="code-block">${displayContent}</pre>
-                    <button class="copy-button" onclick="copyToClipboard(this)" data-code="${escapeForHTML(decodedContent)}">
-                        Copy Code
-                        <div class="copy-feedback">Copied!</div>
-                    </button>
-                </div>
-            `;
-            } catch (error) {
-                console.error('Base64 Decoding Error:', error);
-                return `
-                <div class="code-block-container">
-                    <pre class="code-block error">
-                        Base64 decoding error: ${error.message}
-                        Please ensure there are no extra spaces or line breaks in the Base64 content.
-                        
-                        Debug info:
-                        Raw match length: ${match.length}
-                        Captured content length: ${p1.length}
-                        First 50 chars of captured content: ${p1.substring(0, 50)}...
-                        Full captured content: ${p1}
-                    </pre>
-                </div>
-            `;
-            }
-        });
-
+    
         return content;
     }
 
