@@ -380,6 +380,12 @@
   color: #011e45;
   line-height: 140%;
 }
+.squarehero-hub #SquareHeroHub .doc-content li,
+.squarehero-hub #SquareHeroHub .doc-content li span {
+  font-size: 1.125rem;
+  line-height: 140%;
+  color: #011e45;
+}
 .squarehero-hub #SquareHeroHub .doc-content a,
 .squarehero-hub #SquareHeroHub .doc-content a span {
   color: #011e45;
