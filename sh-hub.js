@@ -884,83 +884,144 @@
     function handleSpreadsheetLink(spreadsheetUrl) {
         debug('Handling spreadsheet link', spreadsheetUrl);
         showLoadingSymbol();
+        
+        let contentContainer = null;
+        let anchorLinks = '';
+        
         fetch(spreadsheetUrl)
-            .then(response => {
-                debug('Spreadsheet fetch response', response);
-                return response.text();
-            })
+            .then(response => response.text())
             .then(data => {
-                debug('Spreadsheet raw data', data.substring(0, 100) + '...');
-                Papa.parse(data, {
-                    complete: function (results) {
-                        debug('Papa Parse results', results);
-                        if (results.errors.length > 0) {
-                            throw new Error('Failed to parse spreadsheet data');
-                        }
-
-                        const rows = results.data.slice(1); // Skip the header row
-                        debug('Parsed rows', rows.length);
-                        if (rows.length === 0) {
-                            throw new Error('No valid data found in the spreadsheet');
-                        }
-
-                        let anchorLinks = '<div class="anchor-links">';
-                        let fetchPromises = [];
-
-                        rows.forEach((row, index) => {
-                            debug(`Processing row ${index}`, row);
-                            if (row.length >= 2 && row[1].trim() !== '') {
-                                const [title, docUrl] = row;
-                                const anchorId = `doc-${index}`;
-
-                                anchorLinks += `<a href="#${anchorId}" class="doc-anchor"><span>${title}</span></a>`;
-                                debug(`Added anchor link for ${title}`);
-
-                                fetchPromises.push(
-                                    fetchGoogleDocContent(docUrl)
-                                        .then(docContent => {
-                                            debug(`Fetched content for ${title}`, docContent.substring(0, 100) + '...');
-                                            return { index, content: `<div id="${anchorId}" class="doc-section">${docContent}</div>` };
-                                        })
-                                );
+                return new Promise((resolve, reject) => {
+                    Papa.parse(data, {
+                        complete: function(results) {
+                            if (results.errors.length > 0) {
+                                reject(new Error('Failed to parse spreadsheet data'));
+                                return;
                             }
-                        });
-
-                        if (fetchPromises.length === 0) {
-                            throw new Error('No valid entries found in the spreadsheet');
-                        }
-
-                        anchorLinks += '</div>';
-                        debug('Final anchor links', anchorLinks);
-
-                        Promise.all(fetchPromises)
-                            .then(results => {
-                                debug('All promises resolved', results.length);
-                                results.sort((a, b) => a.index - b.index);
-                                const content = results.map(result => result.content).join('');
-                                debug('Final content length', content.length);
-                                displayHelpContent(anchorLinks + '<div class="docs-content">' + content + '</div>', true);
-                            })
-                            .catch(error => {
-                                logError('Error fetching multiple docs:', error);
-                                displayErrorMessage('Failed to load content. Please try again later.');
-                            })
-                            .finally(() => {
-                                hideLoadingSymbol();
+    
+                            const rows = results.data.slice(1);
+                            if (rows.length === 0) {
+                                reject(new Error('No valid data found in the spreadsheet'));
+                                return;
+                            }
+    
+                            anchorLinks = '<div class="anchor-links">';
+                            const fetchPromises = [];
+                            const contentOrder = [];
+    
+                            rows.forEach((row, index) => {
+                                if (row.length >= 2 && row[1].trim() !== '') {
+                                    const [title, docUrl] = row;
+                                    const anchorId = `doc-${index}`;
+                                    anchorLinks += `<a href="#${anchorId}" class="doc-anchor"><span>${title}</span></a>`;
+                                    
+                                    fetchPromises.push(
+                                        fetchGoogleDocContent(docUrl)
+                                            .then(docContent => {
+                                                contentOrder[index] = `<div id="${anchorId}" class="doc-section">${docContent}</div>`;
+                                            })
+                                    );
+                                }
                             });
-                    },
-                    error: function (error) {
-                        logError('Error parsing spreadsheet:', error);
-                        displayErrorMessage('Failed to parse spreadsheet content. Please try again later.');
-                        hideLoadingSymbol();
-                    }
+    
+                            anchorLinks += '</div>';
+                            
+                            if (fetchPromises.length === 0) {
+                                reject(new Error('No valid entries found in the spreadsheet'));
+                                return;
+                            }
+    
+                            Promise.all(fetchPromises)
+                                .then(() => {
+                                    const content = contentOrder.filter(Boolean).join('');
+                                    resolve(anchorLinks + '<div class="docs-content">' + content + '</div>');
+                                })
+                                .catch(reject);
+                        },
+                        error: function(error) {
+                            reject(error);
+                        }
+                    });
                 });
             })
+            .then(finalContent => {
+                displayHelpContent(finalContent, true);
+            })
             .catch(error => {
-                logError('Error fetching Google Spreadsheet:', error);
-                displayErrorMessage('Failed to fetch spreadsheet. Please try again later.');
+                logError('Error loading content:', error);
+                displayErrorMessage('Failed to load content. Please try again later.');
+            })
+            .finally(() => {
                 hideLoadingSymbol();
             });
+    }
+    
+    function displayHelpContent(content, isMultipleDocs = false) {
+        debug('Displaying help content');
+        const mainContent = document.querySelector('.main-content');
+        const helpContent = document.getElementById('helpContent');
+        
+        // Clear existing content first
+        helpContent.innerHTML = '';
+        mainContent.style.display = 'none';
+    
+        const wrapperClass = isMultipleDocs ? 'content-wrapper multiple-docs' : 'content-wrapper single-doc';
+        
+        // Build complete content structure before inserting
+        const contentStructure = `
+            <div class="doc-content">
+                <div class="breadcrumb">
+                    <a href="#" id="backToHub">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px">
+                            <path d="M19 12H5"/>
+                            <polyline points="12 19 5 12 12 5"/>
+                        </svg>Return to SquareHero Hub
+                    </a>
+                </div>
+                <div class="${wrapperClass}">
+                    ${content}
+                </div>
+            </div>
+        `;
+    
+        // Single DOM update
+        helpContent.innerHTML = contentStructure;
+    
+        // Set up event listeners after content is loaded
+        document.getElementById('backToHub').addEventListener('click', function(event) {
+            event.preventDefault();
+            helpContent.classList.remove('visible');
+            setTimeout(() => {
+                helpContent.innerHTML = '';
+                mainContent.style.display = 'flex';
+            }, 300);
+        });
+    
+        // Delay visibility changes to next frame
+        requestAnimationFrame(() => {
+            helpContent.querySelector('.doc-content').classList.add('visible');
+            if (isMultipleDocs) {
+                setupSmoothScrolling();
+                setupScrollProgress();
+                const firstAnchor = document.querySelector('.anchor-links a.doc-anchor');
+                if (firstAnchor) {
+                    firstAnchor.classList.add('active');
+                    firstAnchor.style.setProperty('--progress', '0%');
+                }
+            }
+        });
+    
+        setupDocLinks();
+        setupCodeInjectionLinks();
+    }
+    
+    function setupCodeInjectionLinks() {
+        document.querySelectorAll('.sh-hub--code-injection').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.top.CONFIG_PANEL.get("router").history.push('/settings/advanced/code-injection');
+            });
+        });
     }
 
     function displayHelpContent(content, isMultipleDocs = false) {
