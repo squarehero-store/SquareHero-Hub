@@ -289,7 +289,7 @@
 .squarehero-hub #SquareHeroHub .right-column {
   flex: 1 0 40%;
   z-index: 1;
-  text-align: left!important;
+  text-align: left !important;
 }
 .squarehero-hub #SquareHeroHub .section {
   width: 100%;
