@@ -723,7 +723,8 @@
   z-index: 3;
 }
 .doc-content .docs-content {
-  flex: 1;
+  flex: 1 1 50%;
+  overflow: hidden;
 }
 .doc-content .docs-content .doc-section {
   margin-bottom: 100px;
