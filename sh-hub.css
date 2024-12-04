@@ -722,6 +722,8 @@
 .doc-content .docs-content .doc-section {
   margin-bottom: 100px;
   margin-top: 100px;
+  border-top: solid 1px #c2d8ef;
+  padding-top: 50px;
 }
 .doc-content .docs-content .doc-section:first-child {
   margin-top: 0;
