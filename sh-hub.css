@@ -532,7 +532,7 @@
   position: relative;
   z-index: 1;
   display: block;
-  padding: 1.25rem;
+  padding: 1.25rem 120px 1.25rem;
   margin: 0;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
   font-size: 14px;
