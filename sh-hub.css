@@ -289,6 +289,7 @@
 .squarehero-hub #SquareHeroHub .right-column {
   flex: 1 0 40%;
   z-index: 1;
+  text-align: left!important;
 }
 .squarehero-hub #SquareHeroHub .section {
   width: 100%;
@@ -727,6 +728,8 @@
 }
 .doc-content .docs-content .doc-section:first-child {
   margin-top: 0;
+  border-top: none;
+  padding-top: 0px;
 }
 /* Single doc specific styles */
 .single-doc .docs-content {
