@@ -336,7 +336,7 @@
             if (codeInjectionLink) {
                 codeInjectionLink.addEventListener('click', function (event) {
                     event.preventDefault();
-                    window.CONFIG_PANEL.get("router").history.push("/settings/advanced/code-injection");
+                    window.top.CONFIG_PANEL.get("router").history.push("/settings/advanced/code-injection");
                 });
                 console.log('Code injection link event listener added');
             } else {
