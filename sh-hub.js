@@ -106,7 +106,7 @@
                 debug('Cleaned Base64:', cleanBase64);
                 const decodedContent = decodeURIComponent(escape(atob(cleanBase64)));
                 debug('Decoded content:', decodedContent);
-    
+
                 let displayContent = decodedContent
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
@@ -129,7 +129,7 @@
                         result += `<span class="tag">${end}</span>`;
                         return result;
                     });
-    
+
                 return `
                     <div class="code-block-container">
                         <pre class="code-block">${displayContent}</pre>
@@ -157,7 +157,7 @@
                 `;
             }
         });
-    
+
         // New HTML merge tag handler
         content = content.replace(/{{ HTML }}\s*([\w+/=]+)\s*{{ END HTML }}/gs, (match, p1) => {
             try {
@@ -165,7 +165,7 @@
                 debug('Cleaned HTML Base64:', cleanBase64);
                 const decodedContent = decodeURIComponent(escape(atob(cleanBase64)));
                 debug('Decoded HTML content:', decodedContent);
-    
+
                 return `
                     <div class="html-preview-container">
                         ${decodedContent}
@@ -181,7 +181,7 @@
                 `;
             }
         });
-    
+
         // Existing placeholder handlers
         content = content.replace(/{{ HERO ALERT }}(.*?){{ END HERO ALERT }}/gs, (match, p1) => {
             p1 = renderInnerPlaceholders(p1);
@@ -192,7 +192,7 @@
                 </div>
             `;
         });
-    
+
         content = content.replace(/{{ HERO TIP }}(.*?){{ END HERO TIP }}/gs, (match, p1) => {
             p1 = renderInnerPlaceholders(p1);
             return `
@@ -202,7 +202,7 @@
                 </div>
             `;
         });
-    
+
         content = content.replace(/{{ UPDATED }}(.*?){{ END UPDATED }}/gs, (match, p1) => {
             p1 = renderInnerPlaceholders(p1);
             return `
@@ -211,7 +211,7 @@
                 </div>
             `;
         });
-    
+
         // Existing color scheme handler
         content = content.replace(/{{ COLOR SCHEME }}([\s\S]*?){{ END COLOR SCHEME }}/gs, (match, p1) => {
             const cleanInput = p1
@@ -221,30 +221,30 @@
                 .replace(/​/g, '')
                 .replace(/\r/g, '')
                 .trim();
-    
+
             const lines = cleanInput.split('\n').map(line => line.trim()).filter(line => line);
-    
+
             let title = '';
             let colorStart = 0;
-    
+
             if (!lines[0].includes(',')) {
                 title = lines[0];
                 colorStart = 1;
             }
-    
+
             const colors = lines.slice(colorStart)
                 .filter(line => line && line.includes(','))
                 .map(line => {
                     const [name, hex] = line.split(',', 2);
                     const cleanHex = hex.trim().replace(/[^#A-Fa-f0-9]/g, '');
                     const formattedHex = cleanHex.startsWith('#') ? cleanHex : '#' + cleanHex;
-    
+
                     return {
                         name: name.trim(),
                         hex: formattedHex
                     };
                 });
-    
+
             return `
                 <div class="color-scheme-container">
                     ${title ? `<div class="color-scheme-title">${title}</div>` : ''}
@@ -264,7 +264,7 @@
                 </div>
             `;
         });
-    
+
         return content;
     }
 
@@ -336,7 +336,7 @@
             if (codeInjectionLink) {
                 codeInjectionLink.addEventListener('click', function (event) {
                     event.preventDefault();
-                    window.top.location.href = this.href;
+                    window.CONFIG_PANEL.get("router").history.push("/settings/advanced/code-injection");
                 });
                 console.log('Code injection link event listener added');
             } else {
