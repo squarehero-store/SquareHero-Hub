@@ -101,7 +101,7 @@
     function renderPlaceholders(content) {
         // CODE INJECTION LINKS
         content = content.replace(/{{ CODEINJECTION }}(.*?){{ END CODEINJECTION }}/gs, (match, p1) => {
-            return `<a href="#" class="squarehero-nav" data-route="/settings/advanced/code-injection">${p1.trim()}</a>`;
+            return `<a href="#" class="sh-hub--code-injection" data-route="/settings/advanced/code-injection">${p1.trim()}</a>`;
         });
         //  Base64 CODEBLOCK handler
         content = content.replace(/{{ CODEBLOCK }}\s*([\w+/=]+)\s*{{ END CODEBLOCK }}/gs, (match, p1) => {

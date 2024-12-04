@@ -312,6 +312,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 .squarehero-hub #SquareHeroHub .plugin-status .plugin-header {
   display: flex;
@@ -405,6 +406,10 @@
   margin-left: 2px;
   opacity: 0.7;
   transition: transform 0.2s ease;
+}
+.squarehero-hub #SquareHeroHub .doc-content .sh-hub--code-injection {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .squarehero-hub #SquareHeroHub .doc-content p span {
   font-size: 1.125rem;
@@ -533,7 +538,7 @@
   position: relative;
   z-index: 1;
   display: block;
-  padding: 1.25rem 120px 1.25rem;
+  padding: 1.25rem 120px 1.25rem 1.25rem;
   margin: 0;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
   font-size: 14px;
