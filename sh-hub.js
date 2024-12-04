@@ -99,7 +99,11 @@
 
     // Placeholder rendering functions that were also missing
     function renderPlaceholders(content) {
-        // Existing Base64 CODEBLOCK handler
+        // CODE INJECTION LINKS
+        content = content.replace(/{{ CODEINJECTION }}(.*?){{ END CODEINJECTION }}/gs, (match, p1) => {
+            return `<a href="#" class="squarehero-nav" data-route="/settings/advanced/code-injection">${p1.trim()}</a>`;
+        });
+        //  Base64 CODEBLOCK handler
         content = content.replace(/{{ CODEBLOCK }}\s*([\w+/=]+)\s*{{ END CODEBLOCK }}/gs, (match, p1) => {
             try {
                 const cleanBase64 = p1.replace(/\s/g, '');
@@ -1010,6 +1014,12 @@
             setupSmoothScrolling();
             setupScrollProgress();
         }
+        document.querySelectorAll('.squarehero-nav').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.top.CONFIG_PANEL.get("router").history.push('/settings/advanced/code-injection');
+            });
+        });
         debug('Help content displayed');
     }
 
