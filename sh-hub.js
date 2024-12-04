@@ -1014,7 +1014,7 @@
             setupSmoothScrolling();
             setupScrollProgress();
         }
-        document.querySelectorAll('.squarehero-nav').forEach(link => {
+        document.querySelectorAll('.sh-hub--code-injection').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 window.top.CONFIG_PANEL.get("router").history.push('/settings/advanced/code-injection');
