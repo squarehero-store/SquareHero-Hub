@@ -195,23 +195,24 @@
   color: #011e45;
   text-align: left;
 }
-.squarehero-hub #SquareHeroHub .main-content .external-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.squarehero-hub #SquareHeroHub .main-content .external-link:hover svg {
-  transform: translate(1px, -1px);
-  opacity: 1;
-}
-.squarehero-hub #SquareHeroHub .main-content .external-link svg {
-  margin-left: 2px;
-  opacity: 0.7;
-  transition: transform 0.2s ease;
-}
 .squarehero-hub #SquareHeroHub .main-content a {
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+.squarehero-hub #SquareHeroHub .external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  text-decoration: underline;
+}
+.squarehero-hub #SquareHeroHub .external-link:hover svg {
+  transform: translate(1px, -1px);
+  opacity: 1;
+}
+.squarehero-hub #SquareHeroHub .external-link svg {
+  margin-left: 2px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
 }
 .squarehero-hub #SquareHeroHub .left-column {
   flex: 0 0 50%;
