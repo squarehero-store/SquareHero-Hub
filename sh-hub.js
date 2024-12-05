@@ -103,6 +103,15 @@
         content = content.replace(/{{ CODEINJECTION }}(.*?){{ END CODEINJECTION }}/gs, (match, p1) => {
             return `<a href="#" class="sh-hub--code-injection" data-route="/settings/advanced/code-injection">${p1.trim()}</a>`;
         });
+        // Site Styles merge tag
+        content = content.replace(/{{ SITESTYLES }}(.*?){{ END SITESTYLES }}/gs, (match, p1) => {
+            return `<a href="#" class="squarehero-nav" data-route="/site-styles">${p1.trim()}</a>`;
+        });
+
+        // Color Palette Editor merge tag
+        content = content.replace(/{{ COLORPALETTE }}(.*?){{ END COLORPALETTE }}/gs, (match, p1) => {
+            return `<a href="#" class="squarehero-nav" data-route="/site-styles/colors/palette-editor">${p1.trim()}</a>`;
+        });
         //  Base64 CODEBLOCK handler
         content = content.replace(/{{ CODEBLOCK }}\s*([\w+/=]+)\s*{{ END CODEBLOCK }}/gs, (match, p1) => {
             try {
@@ -884,37 +893,37 @@
     function handleSpreadsheetLink(spreadsheetUrl) {
         debug('Handling spreadsheet link', spreadsheetUrl);
         showLoadingSymbol();
-        
+
         let contentContainer = null;
         let anchorLinks = '';
-        
+
         fetch(spreadsheetUrl)
             .then(response => response.text())
             .then(data => {
                 return new Promise((resolve, reject) => {
                     Papa.parse(data, {
-                        complete: function(results) {
+                        complete: function (results) {
                             if (results.errors.length > 0) {
                                 reject(new Error('Failed to parse spreadsheet data'));
                                 return;
                             }
-    
+
                             const rows = results.data.slice(1);
                             if (rows.length === 0) {
                                 reject(new Error('No valid data found in the spreadsheet'));
                                 return;
                             }
-    
+
                             anchorLinks = '<div class="anchor-links">';
                             const fetchPromises = [];
                             const contentOrder = [];
-    
+
                             rows.forEach((row, index) => {
                                 if (row.length >= 2 && row[1].trim() !== '') {
                                     const [title, docUrl] = row;
                                     const anchorId = `doc-${index}`;
                                     anchorLinks += `<a href="#${anchorId}" class="doc-anchor"><span>${title}</span></a>`;
-                                    
+
                                     fetchPromises.push(
                                         fetchGoogleDocContent(docUrl)
                                             .then(docContent => {
@@ -923,14 +932,14 @@
                                     );
                                 }
                             });
-    
+
                             anchorLinks += '</div>';
-                            
+
                             if (fetchPromises.length === 0) {
                                 reject(new Error('No valid entries found in the spreadsheet'));
                                 return;
                             }
-    
+
                             Promise.all(fetchPromises)
                                 .then(() => {
                                     const content = contentOrder.filter(Boolean).join('');
@@ -938,7 +947,7 @@
                                 })
                                 .catch(reject);
                         },
-                        error: function(error) {
+                        error: function (error) {
                             reject(error);
                         }
                     });
@@ -955,18 +964,18 @@
                 hideLoadingSymbol();
             });
     }
-    
+
     function displayHelpContent(content, isMultipleDocs = false) {
         debug('Displaying help content');
         const mainContent = document.querySelector('.main-content');
         const helpContent = document.getElementById('helpContent');
-        
+
         // Clear existing content first
         helpContent.innerHTML = '';
         mainContent.style.display = 'none';
-    
+
         const wrapperClass = isMultipleDocs ? 'content-wrapper multiple-docs' : 'content-wrapper single-doc';
-        
+
         // Build complete content structure before inserting
         const contentStructure = `
             <div class="doc-content">
@@ -983,12 +992,12 @@
                 </div>
             </div>
         `;
-    
+
         // Single DOM update
         helpContent.innerHTML = contentStructure;
-    
+
         // Set up event listeners after content is loaded
-        document.getElementById('backToHub').addEventListener('click', function(event) {
+        document.getElementById('backToHub').addEventListener('click', function (event) {
             event.preventDefault();
             helpContent.classList.remove('visible');
             setTimeout(() => {
@@ -996,7 +1005,7 @@
                 mainContent.style.display = 'flex';
             }, 300);
         });
-    
+
         // Delay visibility changes to next frame
         requestAnimationFrame(() => {
             helpContent.querySelector('.doc-content').classList.add('visible');
@@ -1010,14 +1019,14 @@
                 }
             }
         });
-    
+
         setupDocLinks();
         setupCodeInjectionLinks();
     }
-    
+
     function setupCodeInjectionLinks() {
         document.querySelectorAll('.sh-hub--code-injection').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
                 window.top.CONFIG_PANEL.get("router").history.push('/settings/advanced/code-injection');
             });
@@ -1076,7 +1085,7 @@
             setupScrollProgress();
         }
         document.querySelectorAll('.sh-hub--code-injection').forEach(link => {
-            link.addEventListener('click', function(e) {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
                 window.top.CONFIG_PANEL.get("router").history.push('/settings/advanced/code-injection');
             });

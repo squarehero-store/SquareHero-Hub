@@ -409,7 +409,8 @@
   opacity: 0.7;
   transition: transform 0.2s ease;
 }
-.squarehero-hub #SquareHeroHub .doc-content .sh-hub--code-injection {
+.squarehero-hub #SquareHeroHub .doc-content .sh-hub--code-injection,
+.squarehero-hub #SquareHeroHub .doc-content .squarehero-nav {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
