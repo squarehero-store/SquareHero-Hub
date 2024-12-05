@@ -103,14 +103,19 @@
         content = content.replace(/{{ CODEINJECTION }}(.*?){{ END CODEINJECTION }}/gs, (match, p1) => {
             return `<a href="#" class="sh-hub--code-injection" data-route="/settings/advanced/code-injection">${p1.trim()}</a>`;
         });
+        // CODE INJECTION LINKS
+        content = content.replace(/{{ CODEINJECTION }}(.*?){{ END CODEINJECTION }}/gs, (match, p1) => {
+            return `<a href="#" class="squarehero-nav" data-route="/settings/advanced/code-injection">${p1.trim()}</a>`;
+        });
+
         // Site Styles merge tag
         content = content.replace(/{{ SITESTYLES }}(.*?){{ END SITESTYLES }}/gs, (match, p1) => {
-            return `<a href="#" class="sh-hub--code-injection squarehero-nav" data-route="/site-styles">${p1.trim()}</a>`;
+            return `<a href="#" class="squarehero-nav" data-route="/site-styles">${p1.trim()}</a>`;
         });
 
         // Color Palette Editor merge tag
         content = content.replace(/{{ COLORPALETTE }}(.*?){{ END COLORPALETTE }}/gs, (match, p1) => {
-            return `<a href="#" class="sh-hub--code-injection squarehero-nav" data-route="/site-styles/colors/palette-editor">${p1.trim()}</a>`;
+            return `<a href="#" class="squarehero-nav" data-route="/site-styles/colors/palette-editor">${p1.trim()}</a>`;
         });
         //  Base64 CODEBLOCK handler
         content = content.replace(/{{ CODEBLOCK }}\s*([\w+/=]+)\s*{{ END CODEBLOCK }}/gs, (match, p1) => {
@@ -1025,10 +1030,11 @@
     }
 
     function setupCodeInjectionLinks() {
-        document.querySelectorAll('.sh-hub--code-injection').forEach(link => {
+        document.querySelectorAll('.squarehero-nav').forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
-                window.top.CONFIG_PANEL.get("router").history.push('/settings/advanced/code-injection');
+                const route = this.getAttribute('data-route');
+                window.top.CONFIG_PANEL.get("router").history.push(route);
             });
         });
     }
