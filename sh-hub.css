@@ -195,16 +195,16 @@
   color: #011e45;
   text-align: left;
 }
-.squarehero-hub #SquareHeroHub .main-content .doc-link.external-link {
+.squarehero-hub #SquareHeroHub .main-content .external-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-.squarehero-hub #SquareHeroHub .main-content .doc-link.external-link:hover svg {
+.squarehero-hub #SquareHeroHub .main-content .external-link:hover svg {
   transform: translate(1px, -1px);
   opacity: 1;
 }
-.squarehero-hub #SquareHeroHub .main-content .doc-link.external-link svg {
+.squarehero-hub #SquareHeroHub .main-content .external-link svg {
   margin-left: 2px;
   opacity: 0.7;
   transition: transform 0.2s ease;
